@@ -1,0 +1,1032 @@
+metadata:
+  title: Power of attorney revocation
+  short title: POA revocation
+  comment: This program helps you create documents to cancel the power that you previously gave an agent under a Power of Attorney for Health Care or Power of Attorney for Property.
+  authors:
+    - Vivian McNaughton
+    - Matt Newsted
+---
+include:
+  - docassemble.AssemblyLine:assembly_line.yml
+  - docassemble.ALToolbox:phone-number-validation.yml
+  - docassemble.ILAO:ilao-interview-framework.yml
+  - docassemble.ILAO:shared-basic-questions.yml
+---
+objects:
+  - user: ALIndividual
+  - property_agent: ALIndividual
+  - new_property_agent: ALIndividual
+  - health_agent: ALIndividual
+  - new_health_agent: ALIndividual
+  - property_successors: ALPeopleList.using(
+        object_type=ALIndividual,
+        complete_attribute='complete',
+        there_are_any=True)
+  - health_successors: ALPeopleList.using(
+        object_type=ALIndividual,
+        complete_attribute='complete',
+        there_are_any=True)
+---
+# Road map
+sections:
+  - section_intro: Start
+  #- section_qualify: Do you qualify?
+  - section_property: Power of Attorney for Property
+  - section_health: Power of Attorney for Health Care
+  - section_user: Your information
+  - section_download: Download
+---
+code: |
+  ilao_easy_form_title = "Power of attorney revocation"
+  ilao_easy_form_url = "https://www.illinoislegalaid.org/legal-information/power-attorney-revocation"
+  github_user = 'IllinoisLegalAidOnline'
+  github_repo_name = 'docassemble-PowerOfAttorneyRevocation'
+---
+# interview order block
+mandatory: True
+code: |
+  nav.set_section('section_intro')
+  sees_nav_bar
+  set_progress(5)
+  how_to_use
+  accept_terms
+  if in_illinois == False:
+    out_of_state_kickout
+  if have_copy == False:
+    if know_info == False:
+      no_info_kickout
+  nav.set_section('section_property')
+  set_progress(20)
+  if poa_type["Property"] == True:
+    property_intro
+    property_agent.name.first
+    property_agent.address.address
+    property_agent_date
+    if any_property_successors == True:
+      #if property_replace_agent == True:
+        #new_property_agent.name.first
+        #new_property_agent.address.address
+      property_successors.gather()
+      if property_replace_agent == True:
+        property_who_is_promoted
+        new_property_agent
+      property_remainers
+    property_revoke_date
+  nav.set_section('section_health')
+  set_progress(60)
+  if poa_type["Health"] == True:
+    health_intro
+    if poa_type["Property"] == True:
+      if same_agent == True:
+        health_agent = property_agent
+    else:
+      same_agent = False
+    health_agent.name.first
+    health_agent.address.address
+    health_agent_date
+    if any_health_successors == True:
+      #if health_replace_agent == True:
+        #new_health_agent.name.first
+        #new_health_agent.address.address
+      health_successors.gather()
+      if health_replace_agent == True:
+        health_who_is_promoted
+        new_health_agent
+      health_remainers
+    health_revoke_date
+  nav.set_section('section_user')
+  set_progress(90)
+  user.name.first
+  user.address.address
+  nav.set_section('section_download')
+  get_docs_screen
+---
+id: welcome
+question: |
+  Power of attorney revocation
+subquestion: |
+  Welcome to Illinois Legal Aid Online's **Power of attorney revocation** Easy Form.
+
+  This program helps you create documents to cancel the power that you previously gave an agent under a Power of Attorney for Health Care or a Power of Attorney for Property.
+  
+  Learn about [**ending a power of attorney**](https://www.illinoislegalaid.org/legal-information/ending-power-attorney-0).
+field: sees_nav_bar
+---
+id: instructions
+continue button field: how_to_use
+question: |
+  Instructions
+subquestion: |  
+  To use this program you must be seeking to revoke a Power of Attorney that was created under Illinois law. You will need to know:
+
+  * The names and addresses of all the agents listed on the Power of Attorney, and
+  * The date the Power of Attorney was signed.
+    
+  Set aside 5 to 15 minutes to finish this program. You can log in and save your work to return to later. 
+  
+  ${ collapse_template(help_example) }  
+
+  Click on **{green words}** to learn what they mean. Some questions have a question mark in a circle ${ fa_icon("question-circle", color_css="#0DCAF0" ) } that also gives help.
+---
+template: help_example
+
+subject: |
+
+  **You can expand sections like this to show more information.**
+
+content: |  
+
+  This is an example of help. Click again to hide.
+---
+id: accept terms
+question: |
+  Terms of use
+subquestion: |
+  This program does not provide legal advice. It does not take the place of advice from a lawyer.
+
+  Using this program does not create an attorney-client relationship between you and Illinois Legal Aid Online or its employees.
+
+  ${ collapse_template(get_legal_help) }  
+fields:
+  - To continue, you must accept the [**terms of use**](https://www.illinoislegalaid.org/about/terms-of-use).: accept
+    datatype: checkboxes
+    none of the above: False
+    minlength: 1
+    choices:
+      - I accept the terms of use.
+    validation messages:
+      minlength: |
+        You cannot continue unless you agree to the terms of use.
+continue button field: accept_terms
+---
+template: get_legal_help
+subject: |
+  **What if I need legal advice?**
+content: |  
+  If you have questions or concerns about your legal problem and want legal advice you should talk to a lawyer.
+ 
+  Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
+---
+id: in illinois
+question: |
+  Was the Power of Attorney you want to revoke made in Illinois?
+fields:
+  - no label: in_illinois
+    datatype: yesnoradio
+---
+id: out of state kickout
+event: out_of_state_kickout
+question: |
+  Sorry
+subquestion: |
+  You can only use this program to revoke a Power of Attorney that was created under Illinois law.
+  
+  If you do not live in Illinois, use [**the Legal Services Corporation website**](https://www.lsc.gov/about-lsc/what-legal-aid/get-legal-help) to find a legal aid organization near you.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: have document
+question: |
+  Do you have a copy of the Power of Attorney document?
+subquestion: |
+  A copy will help you answer the questions in this program.
+
+  You can still use this program if you do not have a copy of the Power of Attorney document available. You will have to remember the personal information for each agent named in the original Power of Attorney document.
+fields:
+  - no label: have_copy
+    datatype: yesnoradio
+---
+id: know info
+question: |
+  Do you know the names and addresses of all agents listed on the Power of Attorney and the date it was signed?
+fields:
+  - no label: know_info
+    datatype: yesnoradio
+---
+id: no info kickout
+event: no_info_kickout
+question: |
+  Sorry
+subquestion: |
+  You must know the names and addresses of all agents listed on the Power of Attorney and the date it was signed to use this program.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
+id: poa type
+question: |
+  What type of Power of Attorney will you revoke?
+subquestion: |
+  If you will revoke both a Power of Attorney for Health Care and a Power of Attorney for Property, you can select both options.
+fields:
+  - Power of Attorney for: poa_type
+    datatype: checkboxes
+    choices:
+      - Property
+      - Health Care: Health
+    none of the above: False
+    minlength: 1
+    validation messages:
+      minlength: |
+        You must select at least one type of Power of Attorney to revoke.
+---
+id: property intro
+continue button field: property_intro
+question: |
+  The next questions will ask you about your Power of Attorney for Property.
+---
+id: property agent name
+question: |
+  What is the name of the agent whose Power of Attorney for Property you would like to revoke?
+fields:
+  - First: property_agent.name.first
+  - Middle: property_agent.name.middle
+    required: False
+  - Last: property_agent.name.last
+  - Suffix: property_agent.name.suffix
+    code: |
+      name_suffix()
+    required: False  
+---
+id: property agent address
+question: |
+  What is ${property_agent.name.full(middle='full')}'s address?
+fields:
+  - Street address: property_agent.address.address
+    address autocomplete: True
+  - Address line 2: property_agent.address.unit
+    required: False
+  - City: property_agent.address.city
+  - State: property_agent.address.state
+    code: |
+      states_list() 
+  - ZIP code: property_agent.address.zip
+---
+id: property agent date
+question: |
+  When did you first grant Power of Attorney for Property to ${property_agent.name.full(middle='full')}?
+fields:
+  - Date: property_agent_date
+    datatype: date
+    max: ${ today() }
+---
+id: any property successors
+question: |
+  Are any successor agents listed on the original Power of Attorney for Property document?
+fields:
+  - no label: any_property_successors
+    datatype: yesnoradio
+---
+id: property replace agent
+question: |
+  Do you want one of the successor agents to take over as your new agent for Power of Attorney for Property?
+fields:
+  - no label: property_replace_agent
+    datatype: yesnoradio
+---
+id: new property agent select
+question: |
+  Which of your successor agents would you like to replace ${property_agent.name.full(middle='full')}?
+fields: 
+  - New agent: property_who_is_promoted
+    datatype: object
+    choices: property_successors
+    #I need to figure out how to make this use the full version of names.
+---
+depends on: 
+  - property_who_is_promoted
+  - property_successors
+sets:
+  - new_property_agent.name.first
+code: |
+  for person in property_successors:
+    if person == property_who_is_promoted:
+      new_property_agent.name.first = person.name.first
+      new_property_agent.name.middle = person.name.middle
+      new_property_agent.name.last = person.name.last
+      new_property_agent.name.suffix = person.name.suffix
+---
+depends on: 
+  - property_who_is_promoted
+  - property_successors
+code: |
+  for person in property_successors:
+    if property_replace_agent == True:
+      if person!= property_who_is_promoted:
+        person.remain
+  property_remainers = True
+---
+#id: new property agent name
+#question: |
+  #What is the name of the successor agent you want to be your new Power of Attorney for Property?
+#fields:
+  #- First: new_property_agent.name.first
+  #- Middle: new_property_agent.name.middle
+    #required: False
+  #- Last: new_property_agent.name.last
+  #- Suffix: new_property_agent.name.suffix
+    #code: |
+      #name_suffix()
+    #required: False  
+---
+#id: new property agent address
+#question: |
+  #What is ${new_property_agent.name.full(middle='full')}'s address?
+#fields:
+  #- Street address: new_property_agent.address.address
+    #address autocomplete: True
+  #- Address line 2: new_property_agent.address.unit
+    #required: False
+  #- City: new_property_agent.address.city
+  #- State: new_property_agent.address.state
+    #code: |
+      #states_list() 
+  #- ZIP code: new_property_agent.address.zip
+---
+code: |
+  property_successors[i].name.first
+  property_successors[i].address.address
+  #if property_replace_agent == True:
+    #property_successors[i].remain
+  property_successors[i].complete = True
+---
+sets:
+  - property_successors[i].name.first
+id: names of successors
+question: |
+  What is the ${ordinal(i)} successor's name?
+fields:
+  - First: property_successors[i].name.first
+  - Middle: property_successors[i].name.middle
+    required: False
+  - Last: property_successors[i].name.last
+  - Suffix: property_successors[i].name.suffix
+    code: |
+      name_suffix()
+    required: False  
+---
+id: successor property address
+sets:
+  - property_successors[i].address.address
+question: |
+  What is ${property_successors[i].name.full(middle='full')}'s address?
+fields:
+  - Street address: property_successors[i].address.address
+    address autocomplete: True
+  - Address line 2: property_successors[i].address.unit
+    required: False
+  - City: property_successors[i].address.city
+  - State: property_successors[i].address.state
+    code: |
+      states_list() 
+  - ZIP code: property_successors[i].address.zip
+---
+id: property successor remain
+sets:
+  - property_successors[i].remain
+question: |
+  Would you like ${property_successors[i].name.full(middle='full')} to remain a successor agent?
+fields:
+  - no label: property_successors[i].remain
+    datatype: yesnoradio
+---
+id: any other property successors
+question: |
+  Are any other successor agents listed on the original Power of Attorney for Property document?
+subquestion: |
+  So far you have told us about ${comma_and_list(property_successors.complete_elements().full_names())}.
+fields:
+  - "Anyone else?": property_successors.there_is_another
+    datatype: yesnoradio
+---
+id: health intro
+continue button field: health_intro
+question: |
+  The next questions will ask you about your Power of Attorney for Health Care.
+---
+id: same agent
+question: |
+  Is ${property_agent.name.full(middle='full')} also your agent for your Power of attorney for Health Care?
+fields:
+  - no label: same_agent
+    datatype: yesnoradio
+---
+id: health agent name
+question: |
+  What is the name of the agent whose Power of Attorney for Health Care you would like to revoke?
+fields:
+  - First: health_agent.name.first
+  - Middle: health_agent.name.middle
+    required: False
+  - Last: health_agent.name.last
+  - Suffix: health_agent.name.suffix
+    code: |
+      name_suffix()
+    required: False  
+---
+id: health agent address
+question: |
+  What is ${health_agent.name.full(middle='full')}'s address?
+fields:
+  - Street address: health_agent.address.address
+    address autocomplete: True
+  - Address line 2: health_agent.address.unit
+    required: False
+  - City: health_agent.address.city
+  - State: health_agent.address.state
+    code: |
+      states_list() 
+  - ZIP code: health_agent.address.zip
+---
+id: health agent date
+question: |
+  When did you first grant Power of Attorney for Health Care to ${health_agent.name.full(middle='full')}?
+fields:
+  - Date: health_agent_date
+    datatype: date
+    max: ${ today() }
+---
+id: any health successors
+question: |
+  Are any successor agents listed on the original Power of Attorney for Health Care document?
+fields:
+  - no label: any_health_successors
+    datatype: yesnoradio
+---
+id: health replace agent
+question: |
+  Do you want one of the successor agents to take over as your new agent for Power of Attorney for Health Care?
+fields:
+  - no label: health_replace_agent
+    datatype: yesnoradio
+---
+id: new health agent select
+question: |
+  Which of your successor agents would you like to replace ${health_agent.name.full(middle='full')}?
+fields: 
+  - New agent: health_who_is_promoted
+    datatype: object
+    choices: health_successors
+    #I need to figure out how to make this use the full version of names.
+---
+depends on: 
+  - health_who_is_promoted
+  - health_successors
+sets:
+  - new_health_agent.name.first
+code: |
+  for person in health_successors:
+    if person == health_who_is_promoted:
+      new_health_agent.name.first = person.name.first
+      new_health_agent.name.middle = person.name.middle
+      new_health_agent.name.last = person.name.last
+      new_health_agent.name.suffix = person.name.suffix
+---
+depends on: 
+  - health_who_is_promoted
+  - health_successors
+code: |
+  for person in health_successors:
+    if health_replace_agent == True:
+      if person!= health_who_is_promoted:
+        person.remain   
+  health_remainers = True
+---
+#id: new health agent name
+#question: |
+  #What is the name of the successor agent you want to be your new Power of Attorney for Health Care?
+#fields:
+  #- First: new_health_agent.name.first
+  #- Middle: new_health_agent.name.middle
+    #required: False
+  #- Last: new_health_agent.name.last
+  #- Suffix: new_health_agent.name.suffix
+    #code: |
+      #name_suffix()
+    #required: False  
+---
+#id: new health agent address
+#question: |
+  #What is ${new_health_agent.name.full(middle='full')}'s address?
+#fields:
+  #- Street address: new_health_agent.address.address
+    #address autocomplete: True
+ # - Address line 2: new_health_agent.address.unit
+ #   required: False
+ # - City: new_health_agent.address.city
+ # - State: new_health_agent.address.state
+ #   code: |
+  #    states_list() 
+#  - ZIP code: new_health_agent.address.zip
+---
+code: |
+  health_successors[i].name.first
+  health_successors[i].address.address
+  #if health_replace_agent == True:
+    #health_successors[i].remain
+  health_successors[i].complete = True
+---
+sets:
+  - health_successors[i].name.first
+id: names of successors
+question: |
+  What is the ${ordinal(i)} successor's name?
+fields:
+  - First: health_successors[i].name.first
+  - Middle: health_successors[i].name.middle
+    required: False
+  - Last: health_successors[i].name.last
+  - Suffix: health_successors[i].name.suffix
+    code: |
+      name_suffix()
+    required: False  
+---
+id: successor address
+sets:
+  - health_successors[i].address.address
+question: |
+  What is ${health_successors[i].name.full(middle='full')}'s address?
+fields:
+  - Street address: health_successors[i].address.address
+    address autocomplete: True
+  - Address line 2: health_successors[i].address.unit
+    required: False
+  - City: health_successors[i].address.city
+  - State: health_successors[i].address.state
+    code: |
+      states_list() 
+  - ZIP code: health_successors[i].address.zip
+---
+id: health successor remain
+sets:
+  - health_successors[i].remain
+question: |
+  Would you like ${health_successors[i].name.full(middle='full')} to remain a successor agent?
+fields:
+  - no label: health_successors[i].remain
+    datatype: yesnoradio
+---
+id: any other health successors
+question: |
+  Are any other successor agents listed on the original Power of Attorney for Health Care document?
+subquestion: |
+  So far you have told us about ${comma_and_list(health_successors.complete_elements().full_names())}.
+fields:
+  - "Anyone else?": health_successors.there_is_another
+    datatype: yesnoradio
+---
+id: revoke property date
+question: |
+  When do you want to revoke the Power of Attorney for Property?
+fields:
+  - Date: property_revoke_date
+    datatype: date
+    min: ${ today() }
+---
+id: revoke health date
+question: |
+  When do you want to revoke the Power of Attorney for Health Care?
+fields:
+  - Date: health_revoke_date
+    datatype: date
+    min: ${ today() }
+---
+id: user name
+question: |
+  What is your name?
+fields:
+  - First: user.name.first
+  - Middle: user.name.middle
+    required: False
+  - Last: user.name.last
+  - Suffix: user.name.suffix
+    code: |
+      name_suffix()
+    required: False  
+---
+id: user address
+question: |
+  What is your address?
+fields:
+  - Street address: user.address.address
+    address autocomplete: True
+  - Address line 2: user.address.unit
+    required: False
+  - City: user.address.city
+  - State: user.address.state
+    code: |
+      states_list() 
+  - ZIP code: user.address.zip
+  - County: user.address.county
+---
+depends on:
+  - property_replace_agent
+  - health_replace_agent
+  - property_successors
+  - health_successors
+  - new_property_agent
+  - new_health_agent
+code: |
+  if poa_type["Property"] == True:
+    if any_property_successors == True:
+      if property_replace_agent == True:
+        property_successors_list = comma_and_list(new_property_agent, property_successors)
+      else:
+        property_successors_list = comma_and_list(property_successors)
+    else:
+      property_successors_list = ""
+  else:
+    property_successors_list = ""
+  if poa_type["Health"] == True:
+    if any_health_successors == True:
+      if health_replace_agent == True:
+        health_successors_list = comma_and_list(new_health_agent, health_successors)
+      else:
+        health_successors_list = comma_and_list(health_successors)
+    else:
+      health_successors_list = ""
+  else:
+    health_succcessors_list = ""
+---
+id: get docs screen
+event: get_docs_screen
+question: |
+  Download
+subquestion: |
+  Your forms are ready. View and download your forms below. Click **Make changes** to fix any mistakes.
+  
+  Read the instructions to learn what to do next.
+  
+  ${ action_button_html(url_action('review_answers'), label=':edit: Make changes', color='success', size="md") }
+
+  ${ al_user_bundle.download_list_html() }
+ 
+  &nbsp;
+
+  ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
+  
+  **Note:** This program does not send your form. You will need to do this yourself.
+
+  Thank you for using ILAO Easy Forms!
+under: |
+  % if not user_logged_in():
+  [${fa_icon("sign-in-alt", color="#0079d0", size="sm")} **Sign-in**](${url_of('login', next=interview_url())}) or [**create**](${url_of('register', next=interview_url())}) an ILAO Easy Form account to save your progress (optional).
+  % endif
+
+ 
+  ${ action_button_html(interview_url(i="docassemble.ILAO:feedback.yml", easy_form_interview=ilao_easy_form_url, easy_form_title=ilao_easy_form_title, easy_form_page=user_info().question_id, easy_form_variable=user_info().variable, local=False,reset=1), label=':comment: Was this program helpful?', color="#181c36", size="md", new_window=True) }
+---
+generic object: ALDocumentBundle
+template: x.send_email_template
+subject: |
+  Power of attorney revocation
+content: |
+  Your forms are attached.
+  
+  Thanks for using ILAO Easy Forms!
+  
+  [Illinois Legal Aid Online](https://www.illinoislegalaid.org)
+---
+attachment:
+  name: Power of attorney revocation
+  variable name: revocation[i]
+  filename: poa_revocation
+  docx template file: powerofattorneyrevocation.docx
+---
+objects:
+  - revocation: ALDocument.using(title="Power of attorney revocation", filename="revocation", enabled=True, has_addendum=False)
+---
+objects:
+  - al_user_bundle: ALDocumentBundle.using(elements=[revocation], filename="power_of_attorney_revocation.pdf", title="Download all forms")
+---
+id: review screen
+event: review_answers
+question: |
+  Review screen
+subquestion: |
+  Edit your answers below.
+review: 
+  - Edit: poa_type
+    button: |
+      **You are revoking:**
+      % if poa_type["Property"] == True and poa_type["Health"] == False:
+      A Power of Attorney for Property
+      % elif poa_type["Property"] == False and poa_type["Health"] == True:
+      A Power of Attorney for Health Care
+      % elif poa_type.all_true() == True:
+      A Power of Attorney for Property and a Power of Attorney for Health Care
+      % endif
+  - Edit: property_agent.name.first
+    button: |
+      **Name of the agent whose Power of Attorney for Property you would like to revoke:**
+      ${property_agent.name.full(middle='full')}
+    show if: poa_type["Property"]
+  - Edit: property_agent.address.address
+    button: |
+      **${property_agent.name.full(middle='full')}'s address:**
+      ${property_agent.address.on_one_line()}
+    show if: poa_type["Property"]
+  - Edit: property_agent_date
+    button: |
+      **Date the Power of Attorney for Property began:**
+      ${property_agent_date}
+    show if: poa_type["Property"]
+  - Edit: any_property_successors
+    button: |
+      **Did the Power of Attorney for Property list any successor agents?**
+      ${word(yesno(any_property_successors))}
+    show if: poa_type["Property"]
+  - Edit: property_successors.revisit
+    button: |
+      % if property_replace_agent == False:
+      **Successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
+      % else:
+      **Other successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
+      % endif
+      % for person in property_successors:
+      
+        * ${ person.name.full(middle="full") }
+      % endfor    
+    show if: any_property_successors == True and poa_type["Property"] == True
+  - Edit: property_replace_agent
+    button: |
+      **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Property?**
+      ${word(yesno(property_replace_agent))}
+    show if: any_property_successors == True and poa_type["Property"] == True
+  - Edit: property_who_is_promoted
+    button: |
+      **Which successor do you want to take over the Power of Attorney for Property?**
+      ${property_who_is_promoted}
+    show if: any_property_successors == True and property_replace_agent == True and poa_type["Property"] == True
+  - Edit: property_revoke_date
+    button: |
+      **When do you want to revoke the Power of Attorney for Property?**
+      ${property_revoke_date}
+    show if: poa_type["Property"]
+  - Edit: health_agent.name.first
+    button: |
+      **Name of the agent whose Power of Attorney for Health Care you would like to revoke:**
+      ${health_agent.name.full(middle='full')}
+    show if: poa_type["Health"]
+  - Edit: health_agent.address.address
+    button: |
+      **${health_agent.name.full(middle='full')}'s address:**
+      ${health_agent.address.on_one_line()}
+    show if: poa_type["Health"]
+  - Edit: health_agent_date
+    button: |
+      **Date the Power of Attorney for Health Care began:**
+      ${health_agent_date}
+    show if: poa_type["Health"]
+  - Edit: any_health_successors
+    button: |
+      **Did the Power of Attorney for Health Care list any successor agents?**
+      ${word(yesno(any_health_successors))}
+    show if: poa_type["Health"]
+  - Edit: health_successors.revisit
+    button: |
+      % if health_replace_agent == False:
+      **Successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
+      % else:
+      **Other successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
+      % endif
+      % for person in health_successors:
+      
+        * ${ person.name.full(middle="full") }
+      % endfor    
+    show if: any_health_successors == True and poa_type["Health"] == True
+  - Edit: health_replace_agent
+    button: |
+      **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Health Care?**
+      ${word(yesno(health_replace_agent))}
+    show if: any_health_successors == True and poa_type["Health"] == True
+  - Edit: health_who_is_promoted
+    button: |
+      **Which successor do you want to take over the Power of Attorney for Health Care?**
+      ${health_who_is_promoted}
+    show if: any_health_successors == True and health_replace_agent == True and poa_type["Health"] == True
+  - Edit: health_revoke_date
+    button: |
+      **When do you want to revoke the Power of Attorney for Health?**
+      ${health_revoke_date}
+    show if: poa_type["Health"]
+  - Edit: user.name.first
+    button: |
+      **Your name:**
+      ${user.name.full(middle='full')}
+  - Edit: user.address.address
+    button: |
+      **Your address:**
+      ${user.address.on_one_line()}
+---
+id: property successors edit
+continue button field: property_successors.revisit
+question: |
+  Edit the successors for the Power of Attorney for Property
+subquestion: |
+  ${ property_successors.table }
+
+  ${ property_successors.add_action() }
+---
+id: property successors table
+table: property_successors.table
+rows: property_successors
+columns:
+  - Name: |
+      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+  - Address and status: |
+      action_button_html(url_action(row_item.attr_name("property_review_successor")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+---
+id: property successor review
+continue button field: x.property_review_successor
+generic object: ALIndividual
+question: |
+  Edit ${ x.name.full(middle="full") }'s information
+review: 
+  - Edit: x.name.first
+    button: |
+      **Successor name:**
+      ${ x.name.full(middle="full")  }
+  - Edit: x.address.address
+    button: |
+      **${ x.name.full(middle="full") }'s address: **
+      ${ x.address.on_one_line(bare=True) }
+  - Edit: x.remain
+    button: |
+      **Do you want ${x.name.full(middle="full")} to remain as a successor?**
+      ${word(yesno(x.remain))}
+    show if: property_replace_agent
+---
+id: health successors edit
+continue button field: health_successors.revisit
+question: |
+  Edit the successors for the Power of Attorney for Health Care
+subquestion: |
+  ${ health_successors.table }
+
+  ${ health_successors.add_action() }
+---
+id: health successors table
+table: health_successors.table
+rows: health_successors
+columns:
+  - Name: |
+      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+  - Address and status: |
+      action_button_html(url_action(row_item.attr_name("health_review_successor")), label="Edit", icon="pencil-alt")
+delete buttons: True
+confirm: True
+---
+id: health successor review
+continue button field: x.health_review_successor
+generic object: ALIndividual
+question: |
+  Edit ${ x.name.full(middle="full") }'s information
+review: 
+  - Edit: x.name.first
+    button: |
+      **Successor name:**
+      ${ x.name.full(middle="full")  }
+  - Edit: x.address.address
+    button: |
+      **${ x.name.full(middle="full") }'s address: **
+      ${ x.address.on_one_line(bare=True) }
+  - Edit: x.remain
+    button: |
+      **Do you want ${x.name.full(middle="full")} to remain as a successor?**
+      ${word(yesno(x.remain))}
+    show if: health_replace_agent
+---
+event: section_property
+question: |
+  About the Power of Attorney for Property
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit: poa_type
+    button: |
+      **Are you revoking a Power of Attorney for Property?**
+      ${word(yesno(poa_type["Property"]))}
+  - Edit: property_agent.name.first
+    button: |
+      **Name of the agent whose Power of Attorney for Property you would like to revoke:**
+      ${property_agent.name.full(middle='full')}
+    show if: poa_type["Property"]
+  - Edit: property_agent.address.address
+    button: |
+      **${property_agent.name.full(middle='full')}'s address:**
+      ${property_agent.address.on_one_line()}
+    show if: poa_type["Property"]
+  - Edit: property_agent_date
+    button: |
+      **Date the Power of Attorney for Property began:**
+      ${property_agent_date}
+    show if: poa_type["Property"]
+  - Edit: any_property_successors
+    button: |
+      **Did the Power of Attorney for Property list any successor agents?**
+      ${word(yesno(any_property_successors))}
+    show if: poa_type["Property"]
+  - Edit: property_successors.revisit
+    button: |
+      % if property_replace_agent == False:
+      **Successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
+      % else:
+      **Other successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
+      % endif
+      % for person in property_successors:
+      
+        * ${ person.name.full(middle="full") }
+      % endfor    
+    show if: any_property_successors == True and poa_type["Property"] == True
+  - Edit: property_replace_agent
+    button: |
+      **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Property?**
+      ${word(yesno(property_replace_agent))}
+    show if: any_property_successors == True and poa_type["Property"] == True
+  - Edit: property_who_is_promoted
+    button: |
+      **Which successor do you want to take over the Power of Attorney for Property?**
+      ${property_who_is_promoted}
+    show if: any_property_successors == True and property_replace_agent == True and poa_type["Property"] == True
+  - Edit: property_revoke_date
+    button: |
+      **When do you want to revoke the Power of Attorney for Property?**
+      ${property_revoke_date}
+    show if: poa_type["Property"]
+---
+event: section_health
+question: |
+  About the Power of Attorney for Health Care
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit: poa_type
+    button: |
+      **Are you revoking a Power of Attorney for Health Care?**
+      ${word(yesno(poa_type["Health"]))}
+  - Edit: health_agent.name.first
+    button: |
+      **Name of the agent whose Power of Attorney for Health Care you would like to revoke:**
+      ${health_agent.name.full(middle='full')}
+    show if: poa_type["Health"]
+  - Edit: health_agent.address.address
+    button: |
+      **${health_agent.name.full(middle='full')}'s address:**
+      ${health_agent.address.on_one_line()}
+    show if: poa_type["Health"]
+  - Edit: health_agent_date
+    button: |
+      **Date the Power of Attorney for Health Care began:**
+      ${health_agent_date}
+    show if: poa_type["Health"]
+  - Edit: any_health_successors
+    button: |
+      **Did the Power of Attorney for Health Care list any successor agents?**
+      ${word(yesno(any_health_successors))}
+    show if: poa_type["Health"]
+  - Edit: health_successors.revisit
+    button: |
+      % if health_replace_agent == False:
+      **Successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
+      % else:
+      **Other successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
+      % endif
+      % for person in health_successors:
+      
+        * ${ person.name.full(middle="full") }
+      % endfor    
+    show if: any_health_successors == True and poa_type["Health"] == True
+  - Edit: health_replace_agent
+    button: |
+      **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Health Care?**
+      ${word(yesno(health_replace_agent))}
+    show if: any_health_successors == True and poa_type["Health"] == True
+  - Edit: health_who_is_promoted
+    button: |
+      **Which successor do you want to take over the Power of Attorney for Health Care?**
+      ${health_who_is_promoted}
+    show if: any_health_successors == True and health_replace_agent == True and poa_type["Health"] == True
+  - Edit: health_revoke_date
+    button: |
+      **When do you want to revoke the Power of Attorney for Health?**
+      ${health_revoke_date}
+    show if: poa_type["Health"]
+---
+event: section_user
+question: |
+  Your information
+subquestion: |
+  Edit your answers below.
+review:
+  - Edit: user.name.first
+    button: |
+      **Your name:**
+      ${user.name.full(middle='full')}
+  - Edit: user.address.address
+    button: |
+      **Your address:**
+      ${user.address.on_one_line()}
