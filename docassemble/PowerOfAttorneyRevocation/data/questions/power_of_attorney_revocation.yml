@@ -26,6 +26,7 @@ objects:
         object_type=ALIndividual,
         complete_attribute='complete',
         there_are_any=True)
+  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 # Road map
 sections:
@@ -53,12 +54,14 @@ code: |
   if in_illinois == False:
     out_of_state_kickout
   if have_copy == False:
-    if know_info == False:
-      no_info_kickout
+    no_copy_kickout
+    #if know_info == False:
+      #no_info_kickout
   nav.set_section('section_property')
   set_progress(20)
   if poa_type["Property"] == True:
-    property_intro
+    if poa_type["Health"] == True:
+      property_intro
     property_agent.name.first
     property_agent.address.address
     property_agent_date
@@ -75,10 +78,11 @@ code: |
   nav.set_section('section_health')
   set_progress(60)
   if poa_type["Health"] == True:
-    health_intro
     if poa_type["Property"] == True:
+      health_intro
+      same_agent
       if same_agent == True:
-        health_agent = property_agent
+        double_agent_code  
     else:
       same_agent = False
     health_agent.name.first
@@ -98,7 +102,10 @@ code: |
   set_progress(90)
   user.name.first
   user.address.address
+  user_county_edit
+  #check_county
   nav.set_section('section_download')
+  health_review_logic
   get_docs_screen
 ---
 id: welcome
@@ -122,7 +129,7 @@ subquestion: |
   * The names and addresses of all the agents listed on the Power of Attorney, and
   * The date the Power of Attorney was signed.
     
-  Set aside 5 to 15 minutes to finish this program. You can log in and save your work to return to later. 
+  Set aside 5 to 15 minutes to finish this program. You can log in and save your work to return to later. After you print out the revocation, you will need to sign it in front of a notary.
   
   ${ collapse_template(help_example) }  
 
@@ -214,6 +221,15 @@ buttons:
   - Exit: exit
   - Restart: restart
 ---
+event: no_copy_kickout
+question: |
+  Sorry
+subquestion: |
+  You must have a copy of the Power of Attorney you want to revoke to use this program.
+buttons:
+  - Exit: exit
+  - Restart: restart
+---
 id: poa type
 question: |
   What type of Power of Attorney will you revoke?
@@ -234,6 +250,8 @@ fields:
 id: property intro
 continue button field: property_intro
 question: |
+  Power of Attorney for Property
+subquestion: |
   The next questions will ask you about your Power of Attorney for Property.
 ---
 id: property agent name
@@ -403,6 +421,8 @@ fields:
 id: health intro
 continue button field: health_intro
 question: |
+  Power of Attorney for Health Care
+subquestion: |
   The next questions will ask you about your Power of Attorney for Health Care.
 ---
 id: same agent
@@ -411,6 +431,17 @@ question: |
 fields:
   - no label: same_agent
     datatype: yesnoradio
+---
+depends on:
+  - poa_type
+  - same_agent
+  - property_agent.name.first
+  - property_agent.address.address
+code: |
+  if poa_type["Property"] == True:
+    if same_agent == True:
+      health_agent = property_agent
+  double_agent_code = True
 ---
 id: health agent name
 question: |
@@ -621,6 +652,91 @@ fields:
   - County: user.address.county
 ---
 depends on:
+  - user.address.county
+sets:
+  - add_county
+code: |
+  user_county_name = user.address.county.lower()
+  
+  if user_county_name.endswith(" county"):
+    add_county = False
+  else:
+    add_county = True
+    
+---
+sets:
+  - user_county_edit
+code: |
+  if add_county == True:
+    user.address.county = user.address.county + " County"
+  user_county_edit = True
+---
+template: county_lookup_help
+subject: |
+  **How do I look up the county?**
+content: |  
+  You can use this **[City-to-County Finder](https://www.statsamerica.org/CityCountyFinder/)** to find the county.
+---
+id: property county
+continue button field: property_county
+question: |
+  In which county is your address?
+subquestion: |
+  We could not find the county for your address in the list of Illinois counties, but you can select it here.
+
+  ${ collapse_template(county_lookup_help) }
+fields:
+  - no label: trial_court_index
+    code: |
+      court_county_lookup()
+---   
+code: |
+  def court_county_lookup(lowercase=False):
+    all_court_counties = court_list._load_courts()['address_county'].items()
+    filtered_courts = [(-1, "cook")] if lowercase else [(-1, "Cook")]
+    for court in all_court_counties:
+      if court[1] != "Cook":
+        court_name = court[1].lower() if lowercase else court[1]
+        filtered_courts.append((court[0],court_name))
+    return sorted( filtered_courts, key=lambda y: y[1])
+---
+code: |
+  def get_county_list(lowercase=False):
+    county_list = [*set(court_list._load_courts()['address_county'])]
+    county_list.sort()
+    return county_list
+---
+depends on:
+  - trial_court_index
+code: |
+  county_name = user.county.lower()
+  
+  if county_name.endswith(" county"):
+    county_name = user.county.lower()[0:-7]
+
+  county_found = False
+  for item in get_county_list():
+    if county_name == str(item).lower():
+      county_found = True
+
+  if county_found == False:
+    trial_court_index
+    if trial_court_index == "-1":
+      trial_court = court_list.as_court('trial_court', 15)
+    else:
+      trial_court = court_list.as_court('trial_court', trial_court_index)
+    user.county = trial_court.address.county + " County" 
+  check_county = True
+---
+depends on:
+  - trial_court_index
+code: |
+  if trial_court_index == "-1":
+    trial_court = court_list.as_court('trial_court', 15)
+  else:
+    trial_court = court_list.as_court('trial_court', trial_court_index)
+---
+depends on:
   - property_replace_agent
   - health_replace_agent
   - property_successors
@@ -689,16 +805,55 @@ content: |
   [Illinois Legal Aid Online](https://www.illinoislegalaid.org)
 ---
 attachment:
-  name: Power of attorney revocation
-  variable name: revocation[i]
-  filename: poa_revocation
-  docx template file: powerofattorneyrevocation.docx
+  name: Power of attorney for property revocation
+  variable name: revocation_property[i]
+  filename: revocation_property
+  docx template file: poa_revocation_property.docx
+---
+attachment:
+  name: Power of attorney for health care revocation
+  variable name: revocation_health[i]
+  filename: revocation_health
+  docx template file: poa_revocation_health.docx
+---
+attachment:
+  name: Instructions
+  variable name: instructions[i]
+  filename: instructions
+  docx template file: poa_revocation_instructions.docx
 ---
 objects:
-  - revocation: ALDocument.using(title="Power of attorney revocation", filename="revocation", enabled=True, has_addendum=False)
+  - revocation_property: ALDocument.using(title="Power of attorney for property revocation", filename="revocation_property", has_addendum=False)
+  - revocation_health: ALDocument.using(title="Power of attorney for health care revocation", filename="revocation_health", has_addendum=False)
+  - instructions: ALDocument.using(title="Instructions", filename="instructions", enabled=True, has_addendum=False)
+---
+depends on: 
+  - poa_type
+code: |
+  revocation_property.enabled = False
+  revocation_health.enabled = False
+  if poa_type["Property"] == True:
+    revocation_property.enabled = True
+  if poa_type["Health"] == True:
+    revocation_health.enabled = True
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[revocation], filename="power_of_attorney_revocation.pdf", title="Download all forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, revocation_property, revocation_health], filename="power_of_attorney_revocation.pdf", title="Download all forms")
+---
+depends on:
+  - poa_type
+  - same_agent
+code: |
+  if poa_type["Health"] == False:
+    health_review_logic = False
+  else:
+    if poa_type["Property"] == False:
+      health_review_logic = True
+    else:
+      if same_agent == False:
+        health_review_logic = True
+      else:
+        health_review_logic = False
 ---
 id: review screen
 event: review_answers
@@ -764,16 +919,21 @@ review:
       **When do you want to revoke the Power of Attorney for Property?**
       ${property_revoke_date}
     show if: poa_type["Property"]
+  - Edit: same_agent
+    button: |
+      **Is ${property_agent.name.full(middle='full')} your agent for your Power of attorney for Health Care?**
+      ${word(yesno(same_agent))}
+    show if: poa_type["Property"] == True and poa_type["Health"] == True
   - Edit: health_agent.name.first
     button: |
       **Name of the agent whose Power of Attorney for Health Care you would like to revoke:**
       ${health_agent.name.full(middle='full')}
-    show if: poa_type["Health"]
+    show if: health_review_logic
   - Edit: health_agent.address.address
     button: |
       **${health_agent.name.full(middle='full')}'s address:**
       ${health_agent.address.on_one_line()}
-    show if: poa_type["Health"]
+    show if: health_review_logic
   - Edit: health_agent_date
     button: |
       **Date the Power of Attorney for Health Care began:**
@@ -819,6 +979,10 @@ review:
     button: |
       **Your address:**
       ${user.address.on_one_line()}
+  - Edit: user.address.county
+    button: |
+      **Your county:**
+      ${user.address.county}
 ---
 id: property successors edit
 continue button field: property_successors.revisit
@@ -968,16 +1132,21 @@ review:
     button: |
       **Are you revoking a Power of Attorney for Health Care?**
       ${word(yesno(poa_type["Health"]))}
+  - Edit: same_agent
+    button: |
+      **Is ${property_agent.name.full(middle='full')} your agent for your Power of attorney for Health Care?**
+      ${word(yesno(same_agent))}
+    show if: poa_type["Property"] == True and poa_type["Health"] == True
   - Edit: health_agent.name.first
     button: |
       **Name of the agent whose Power of Attorney for Health Care you would like to revoke:**
       ${health_agent.name.full(middle='full')}
-    show if: poa_type["Health"]
+    show if: health_review_logic
   - Edit: health_agent.address.address
     button: |
       **${health_agent.name.full(middle='full')}'s address:**
       ${health_agent.address.on_one_line()}
-    show if: poa_type["Health"]
+    show if: health_review_logic
   - Edit: health_agent_date
     button: |
       **Date the Power of Attorney for Health Care began:**
@@ -1030,3 +1199,7 @@ review:
     button: |
       **Your address:**
       ${user.address.on_one_line()}
+  - Edit: user.address.county
+    button: |
+      **Your county:**
+      ${user.address.county}
