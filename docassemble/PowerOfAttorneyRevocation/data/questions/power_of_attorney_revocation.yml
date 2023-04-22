@@ -102,8 +102,7 @@ code: |
   set_progress(90)
   user.name.first
   user.address.address
-  user_county_edit
-  #check_county
+  user.address.county_correct
   nav.set_section('section_download')
   health_review_logic
   get_docs_screen
@@ -652,91 +651,6 @@ fields:
   - County: user.address.county
 ---
 depends on:
-  - user.address.county
-sets:
-  - add_county
-code: |
-  user_county_name = user.address.county.lower()
-  
-  if user_county_name.endswith(" county"):
-    add_county = False
-  else:
-    add_county = True
-    
----
-sets:
-  - user_county_edit
-code: |
-  if add_county == True:
-    user.address.county = user.address.county + " County"
-  user_county_edit = True
----
-template: county_lookup_help
-subject: |
-  **How do I look up the county?**
-content: |  
-  You can use this **[City-to-County Finder](https://www.statsamerica.org/CityCountyFinder/)** to find the county.
----
-id: property county
-continue button field: property_county
-question: |
-  In which county is your address?
-subquestion: |
-  We could not find the county for your address in the list of Illinois counties, but you can select it here.
-
-  ${ collapse_template(county_lookup_help) }
-fields:
-  - no label: trial_court_index
-    code: |
-      court_county_lookup()
----   
-code: |
-  def court_county_lookup(lowercase=False):
-    all_court_counties = court_list._load_courts()['address_county'].items()
-    filtered_courts = [(-1, "cook")] if lowercase else [(-1, "Cook")]
-    for court in all_court_counties:
-      if court[1] != "Cook":
-        court_name = court[1].lower() if lowercase else court[1]
-        filtered_courts.append((court[0],court_name))
-    return sorted( filtered_courts, key=lambda y: y[1])
----
-code: |
-  def get_county_list(lowercase=False):
-    county_list = [*set(court_list._load_courts()['address_county'])]
-    county_list.sort()
-    return county_list
----
-depends on:
-  - trial_court_index
-code: |
-  county_name = user.county.lower()
-  
-  if county_name.endswith(" county"):
-    county_name = user.county.lower()[0:-7]
-
-  county_found = False
-  for item in get_county_list():
-    if county_name == str(item).lower():
-      county_found = True
-
-  if county_found == False:
-    trial_court_index
-    if trial_court_index == "-1":
-      trial_court = court_list.as_court('trial_court', 15)
-    else:
-      trial_court = court_list.as_court('trial_court', trial_court_index)
-    user.county = trial_court.address.county + " County" 
-  check_county = True
----
-depends on:
-  - trial_court_index
-code: |
-  if trial_court_index == "-1":
-    trial_court = court_list.as_court('trial_court', 15)
-  else:
-    trial_court = court_list.as_court('trial_court', trial_court_index)
----
-depends on:
   - property_replace_agent
   - health_replace_agent
   - property_successors
@@ -975,14 +889,15 @@ review:
     button: |
       **Your name:**
       ${user.name.full(middle='full')}
-  - Edit: user.address.address
+  - label: Edit
+    fields:
+      - user.address.address
+      - recompute:
+        - user.address.county_correct
     button: |
       **Your address:**
-      ${user.address.on_one_line()}
-  - Edit: user.address.county
-    button: |
-      **Your county:**
-      ${user.address.county}
+      ${user.address.on_one_line()}, ${end_in_county(user.address.county)}
+
 ---
 id: property successors edit
 continue button field: property_successors.revisit
@@ -1195,11 +1110,11 @@ review:
     button: |
       **Your name:**
       ${user.name.full(middle='full')}
-  - Edit: user.address.address
+  - label: Edit
+    fields:
+      - user.address.address
+      - recompute:
+        - user.address.county_correct
     button: |
       **Your address:**
-      ${user.address.on_one_line()}
-  - Edit: user.address.county
-    button: |
-      **Your county:**
-      ${user.address.county}
+      ${user.address.on_one_line()}, ${end_in_county(user.address.county)}
