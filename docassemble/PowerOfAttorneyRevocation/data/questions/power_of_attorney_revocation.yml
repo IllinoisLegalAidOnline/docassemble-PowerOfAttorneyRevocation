@@ -31,7 +31,6 @@ objects:
 # Road map
 sections:
   - section_intro: Start
-  #- section_qualify: Do you qualify?
   - section_property: Power of Attorney for Property
   - section_health: Power of Attorney for Health Care
   - section_user: Your information
@@ -55,8 +54,6 @@ code: |
     out_of_state_kickout
   if have_copy == False:
     no_copy_kickout
-    #if know_info == False:
-      #no_info_kickout
   nav.set_section('section_property')
   set_progress(20)
   if poa_type["Property"] == True:
@@ -66,9 +63,6 @@ code: |
     property_agent.address.address
     property_agent_date
     if any_property_successors == True:
-      #if property_replace_agent == True:
-        #new_property_agent.name.first
-        #new_property_agent.address.address
       property_successors.gather()
       if property_replace_agent == True:
         property_who_is_promoted
@@ -89,9 +83,6 @@ code: |
     health_agent.address.address
     health_agent_date
     if any_health_successors == True:
-      #if health_replace_agent == True:
-        #new_health_agent.name.first
-        #new_health_agent.address.address
       health_successors.gather()
       if health_replace_agent == True:
         health_who_is_promoted
@@ -104,7 +95,6 @@ code: |
   user.address.address
   user.address.county_correct
   nav.set_section('section_download')
-  health_review_logic
   get_docs_screen
 ---
 id: welcome
@@ -334,38 +324,9 @@ code: |
         person.remain
   property_remainers = True
 ---
-#id: new property agent name
-#question: |
-  #What is the name of the successor agent you want to be your new Power of Attorney for Property?
-#fields:
-  #- First: new_property_agent.name.first
-  #- Middle: new_property_agent.name.middle
-    #required: False
-  #- Last: new_property_agent.name.last
-  #- Suffix: new_property_agent.name.suffix
-    #code: |
-      #name_suffix()
-    #required: False  
----
-#id: new property agent address
-#question: |
-  #What is ${new_property_agent.name.full(middle='full')}'s address?
-#fields:
-  #- Street address: new_property_agent.address.address
-    #address autocomplete: True
-  #- Address line 2: new_property_agent.address.unit
-    #required: False
-  #- City: new_property_agent.address.city
-  #- State: new_property_agent.address.state
-    #code: |
-      #states_list() 
-  #- ZIP code: new_property_agent.address.zip
----
 code: |
   property_successors[i].name.first
   property_successors[i].address.address
-  #if property_replace_agent == True:
-    #property_successors[i].remain
   property_successors[i].complete = True
 ---
 sets:
@@ -426,7 +387,7 @@ subquestion: |
 ---
 id: same agent
 question: |
-  Is ${property_agent.name.full(middle='full')} also your agent for your Power of attorney for Health Care?
+  Is ${property_agent.name.full(middle='full')} also your agent for your Power of Attorney for Health Care?
 fields:
   - no label: same_agent
     datatype: yesnoradio
@@ -498,7 +459,6 @@ fields:
   - New agent: health_who_is_promoted
     datatype: object
     choices: health_successors
-    #I need to figure out how to make this use the full version of names.
 ---
 depends on: 
   - health_who_is_promoted
@@ -523,38 +483,9 @@ code: |
         person.remain   
   health_remainers = True
 ---
-#id: new health agent name
-#question: |
-  #What is the name of the successor agent you want to be your new Power of Attorney for Health Care?
-#fields:
-  #- First: new_health_agent.name.first
-  #- Middle: new_health_agent.name.middle
-    #required: False
-  #- Last: new_health_agent.name.last
-  #- Suffix: new_health_agent.name.suffix
-    #code: |
-      #name_suffix()
-    #required: False  
----
-#id: new health agent address
-#question: |
-  #What is ${new_health_agent.name.full(middle='full')}'s address?
-#fields:
-  #- Street address: new_health_agent.address.address
-    #address autocomplete: True
- # - Address line 2: new_health_agent.address.unit
- #   required: False
- # - City: new_health_agent.address.city
- # - State: new_health_agent.address.state
- #   code: |
-  #    states_list() 
-#  - ZIP code: new_health_agent.address.zip
----
 code: |
   health_successors[i].name.first
   health_successors[i].address.address
-  #if health_replace_agent == True:
-    #health_successors[i].remain
   health_successors[i].complete = True
 ---
 sets:
@@ -752,22 +683,7 @@ code: |
     revocation_health.enabled = True
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, revocation_property, revocation_health], filename="power_of_attorney_revocation.pdf", title="Download all forms")
----
-depends on:
-  - poa_type
-  - same_agent
-code: |
-  if poa_type["Health"] == False:
-    health_review_logic = False
-  else:
-    if poa_type["Property"] == False:
-      health_review_logic = True
-    else:
-      if same_agent == False:
-        health_review_logic = True
-      else:
-        health_review_logic = False
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, revocation_property, revocation_health], filename="power_of_attorney_revocation.pdf", title="All forms")
 ---
 id: review screen
 event: review_answers
@@ -835,19 +751,19 @@ review:
     show if: poa_type["Property"]
   - Edit: same_agent
     button: |
-      **Is ${property_agent.name.full(middle='full')} your agent for your Power of attorney for Health Care?**
+      **Is ${property_agent.name.full(middle='full')} your agent for your Power of Attorney for Health Care?**
       ${word(yesno(same_agent))}
     show if: poa_type["Property"] == True and poa_type["Health"] == True
   - Edit: health_agent.name.first
     button: |
       **Name of the agent whose Power of Attorney for Health Care you would like to revoke:**
       ${health_agent.name.full(middle='full')}
-    show if: health_review_logic
+    show if: poa_type["Health"]
   - Edit: health_agent.address.address
     button: |
       **${health_agent.name.full(middle='full')}'s address:**
       ${health_agent.address.on_one_line()}
-    show if: health_review_logic
+    show if: poa_type["Health"]
   - Edit: health_agent_date
     button: |
       **Date the Power of Attorney for Health Care began:**
@@ -1049,19 +965,19 @@ review:
       ${word(yesno(poa_type["Health"]))}
   - Edit: same_agent
     button: |
-      **Is ${property_agent.name.full(middle='full')} your agent for your Power of attorney for Health Care?**
+      **Is ${property_agent.name.full(middle='full')} your agent for your Power of Attorney for Health Care?**
       ${word(yesno(same_agent))}
     show if: poa_type["Property"] == True and poa_type["Health"] == True
   - Edit: health_agent.name.first
     button: |
       **Name of the agent whose Power of Attorney for Health Care you would like to revoke:**
       ${health_agent.name.full(middle='full')}
-    show if: health_review_logic
+    show if: poa_type["Health"]
   - Edit: health_agent.address.address
     button: |
       **${health_agent.name.full(middle='full')}'s address:**
       ${health_agent.address.on_one_line()}
-    show if: health_review_logic
+    show if: poa_type["Health"]
   - Edit: health_agent_date
     button: |
       **Date the Power of Attorney for Health Care began:**
