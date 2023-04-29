@@ -650,13 +650,13 @@ content: |
   [Illinois Legal Aid Online](https://www.illinoislegalaid.org)
 ---
 attachment:
-  name: Power of attorney for property revocation
+  name: Letter to agent of power of attorney for property
   variable name: revocation_property[i]
   filename: revocation_property
   docx template file: poa_revocation_property.docx
 ---
 attachment:
-  name: Power of attorney for health care revocation
+  name: Letter to agent of power of attorney for health care
   variable name: revocation_health[i]
   filename: revocation_health
   docx template file: poa_revocation_health.docx
@@ -667,9 +667,23 @@ attachment:
   filename: instructions
   docx template file: poa_revocation_instructions.docx
 ---
+attachment:
+  name: Notice of revocation of power of attorney for property
+  variable name: notice_property[i]
+  filename: notice_property
+  docx template file: revocation_notice_property.docx
+---
+attachment:
+  name: Notice of revocation of power of attorney for health
+  variable name: notice_health[i]
+  filename: notice_health
+  docx template file: revocation_notice_health.docx
+---
 objects:
-  - revocation_property: ALDocument.using(title="Power of attorney for property revocation", filename="revocation_property", has_addendum=False)
-  - revocation_health: ALDocument.using(title="Power of attorney for health care revocation", filename="revocation_health", has_addendum=False)
+  - revocation_property: ALDocument.using(title="Letter to agent of power of attorney for property", filename="revocation_property", has_addendum=False)
+  - revocation_health: ALDocument.using(title="Letter to agent of power of attorney for health", filename="revocation_health", has_addendum=False)
+  - notice_property: ALDocument.using(title="Notice of revocation of power of attorney for property", filename="notice_property", has_addendum=False)
+  - notice_health: ALDocument.using(title="Notice of revocation of power of attorney for health", filename="notice_health", has_addendum=False)
   - instructions: ALDocument.using(title="Instructions", filename="instructions", enabled=True, has_addendum=False)
 ---
 depends on: 
@@ -677,13 +691,17 @@ depends on:
 code: |
   revocation_property.enabled = False
   revocation_health.enabled = False
+  notice_health.enabled = False
+  notice_property.enabled = False
   if poa_type["Property"] == True:
     revocation_property.enabled = True
+    notice_property.enabled = True
   if poa_type["Health"] == True:
     revocation_health.enabled = True
+    notice_health.enabled = True
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, revocation_property, revocation_health], filename="power_of_attorney_revocation.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, revocation_property, notice_property, revocation_health, notice_health], filename="power_of_attorney_revocation.pdf", title="All forms")
 ---
 id: review screen
 event: review_answers
@@ -813,7 +831,6 @@ review:
     button: |
       **Your address:**
       ${user.address.on_one_line()}, ${end_in_county(user.address.county)}
-
 ---
 id: property successors edit
 continue button field: property_successors.revisit
