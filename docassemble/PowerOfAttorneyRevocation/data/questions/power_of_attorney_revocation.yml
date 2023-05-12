@@ -22,6 +22,7 @@ objects:
         object_type=ALIndividual,
         complete_attribute='complete',
         there_are_any=True)
+  - property_options: DAList.using(there_are_any=True)
   - health_successors: ALPeopleList.using(
         object_type=ALIndividual,
         complete_attribute='complete',
@@ -52,13 +53,11 @@ code: |
   accept_terms
   if in_illinois == False:
     out_of_state_kickout
-  if have_copy == False:
-    no_copy_kickout
+  have_copy
   nav.set_section('section_property')
   set_progress(20)
   if poa_type["Property"] == True:
-    if poa_type["Health"] == True:
-      property_intro
+    property_intro
     property_agent.name.first
     property_agent.address.address
     property_agent_date
@@ -68,12 +67,12 @@ code: |
         property_who_is_promoted
         new_property_agent
       property_remainers
-    property_revoke_date
+    #property_revoke_date
   nav.set_section('section_health')
   set_progress(60)
   if poa_type["Health"] == True:
+    health_intro
     if poa_type["Property"] == True:
-      health_intro
       same_agent
       if same_agent == True:
         double_agent_code  
@@ -88,7 +87,7 @@ code: |
         health_who_is_promoted
         new_health_agent
       health_remainers
-    health_revoke_date
+    #health_revoke_date
   nav.set_section('section_user')
   set_progress(90)
   user.name.first
@@ -105,7 +104,7 @@ subquestion: |
 
   This program helps you create documents to cancel the power that you previously gave an agent under a Power of Attorney for Health Care or a Power of Attorney for Property.
   
-  Learn about [**ending a power of attorney**](https://www.illinoislegalaid.org/legal-information/ending-power-attorney-0).
+  To learn more, read ILAO's article about [**ending a power of attorney**](https://www.illinoislegalaid.org/legal-information/ending-power-attorney-0).
 field: sees_nav_bar
 ---
 id: instructions
@@ -184,14 +183,12 @@ buttons:
 ---
 id: have document
 question: |
-  Do you have a copy of the Power of Attorney document?
+  Power of attorney copy
 subquestion: |
-  A copy will help you answer the questions in this program.
+  A copy of your power of attorney document will help you answer the questions in this program. If you have a copy, you should look at it while answering the following questions.
 
   You can still use this program if you do not have a copy of the Power of Attorney document available. You will have to remember the personal information for each agent named in the original Power of Attorney document.
-fields:
-  - no label: have_copy
-    datatype: yesnoradio
+continue button field: have_copy
 ---
 id: know info
 question: |
@@ -210,20 +207,11 @@ buttons:
   - Exit: exit
   - Restart: restart
 ---
-event: no_copy_kickout
-question: |
-  Sorry
-subquestion: |
-  You must have a copy of the Power of Attorney you want to revoke to use this program.
-buttons:
-  - Exit: exit
-  - Restart: restart
----
 id: poa type
 question: |
   What type of Power of Attorney will you revoke?
 subquestion: |
-  If you will revoke both a Power of Attorney for Health Care and a Power of Attorney for Property, you can select both options.
+  If you want to revoke both a Power of Attorney for Health Care and a Power of Attorney for Property, you can select both options.
 fields:
   - Power of Attorney for: poa_type
     datatype: checkboxes
@@ -540,18 +528,22 @@ fields:
 id: revoke property date
 question: |
   When do you want to revoke the Power of Attorney for Property?
+subquestion: |
+  The Power of Attorney will remain in effect until this date.
 fields:
   - Date: property_revoke_date
     datatype: date
-    min: ${ today() }
+    min: ${ property_agent_date }
 ---
 id: revoke health date
 question: |
   When do you want to revoke the Power of Attorney for Health Care?
+subquestion: |
+  The Power of Attorney will remain in effect until this date.
 fields:
   - Date: health_revoke_date
     datatype: date
-    min: ${ today() }
+    min: ${ health_agent_date }
 ---
 id: user name
 question: |
@@ -650,13 +642,13 @@ content: |
   [Illinois Legal Aid Online](https://www.illinoislegalaid.org)
 ---
 attachment:
-  name: Letter to agent of power of attorney for property
+  name: Letter to agent of Power of Attorney for Property
   variable name: revocation_property[i]
   filename: revocation_property
   docx template file: poa_revocation_property.docx
 ---
 attachment:
-  name: Letter to agent of power of attorney for health care
+  name: Letter to agent of Power of Attorney for Health Care
   variable name: revocation_health[i]
   filename: revocation_health
   docx template file: poa_revocation_health.docx
@@ -668,13 +660,13 @@ attachment:
   docx template file: poa_revocation_instructions.docx
 ---
 attachment:
-  name: Notice of revocation of power of attorney for property
+  name: Notice of revocation of Power of Attorney for Property
   variable name: notice_property[i]
   filename: notice_property
   docx template file: revocation_notice_property.docx
 ---
 attachment:
-  name: Notice of revocation of power of attorney for health
+  name: Notice of revocation of Power of Attorney for Health
   variable name: notice_health[i]
   filename: notice_health
   docx template file: revocation_notice_health.docx
@@ -728,7 +720,7 @@ review:
   - Edit: property_agent.address.address
     button: |
       **${property_agent.name.full(middle='full')}'s address:**
-      ${property_agent.address.on_one_line()}
+      ${property_agent.address.on_one_line(bare="True")}
     show if: poa_type["Property"]
   - Edit: property_agent_date
     button: |
@@ -780,7 +772,7 @@ review:
   - Edit: health_agent.address.address
     button: |
       **${health_agent.name.full(middle='full')}'s address:**
-      ${health_agent.address.on_one_line()}
+      ${health_agent.address.on_one_line(bare="True")}
     show if: poa_type["Health"]
   - Edit: health_agent_date
     button: |
@@ -830,7 +822,7 @@ review:
         - user.address.county_correct
     button: |
       **Your address:**
-      ${user.address.on_one_line()}, ${end_in_county(user.address.county)}
+      ${user.address.on_one_line(bare="True")}, ${end_in_county(user.address.county)}
 ---
 id: property successors edit
 continue button field: property_successors.revisit
@@ -930,7 +922,7 @@ review:
   - Edit: property_agent.address.address
     button: |
       **${property_agent.name.full(middle='full')}'s address:**
-      ${property_agent.address.on_one_line()}
+      ${property_agent.address.on_one_line(bare="True")}
     show if: poa_type["Property"]
   - Edit: property_agent_date
     button: |
@@ -993,7 +985,7 @@ review:
   - Edit: health_agent.address.address
     button: |
       **${health_agent.name.full(middle='full')}'s address:**
-      ${health_agent.address.on_one_line()}
+      ${health_agent.address.on_one_line(bare="True")}
     show if: poa_type["Health"]
   - Edit: health_agent_date
     button: |
@@ -1050,4 +1042,4 @@ review:
         - user.address.county_correct
     button: |
       **Your address:**
-      ${user.address.on_one_line()}, ${end_in_county(user.address.county)}
+      ${user.address.on_one_line(bare="True")}, ${end_in_county(user.address.county)}
