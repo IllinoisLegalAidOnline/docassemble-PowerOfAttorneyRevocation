@@ -16,6 +16,8 @@ objects:
   - user: ALIndividual
   - property_agent: ALIndividual
   - new_property_agent: ALIndividual
+  - property_who_is_promoted: ALIndividual
+  - health_who_is_promoted: ALIndividual
   - health_agent: ALIndividual
   - new_health_agent: ALIndividual
   - property_successors: ALPeopleList.using(
@@ -64,8 +66,11 @@ code: |
     if any_property_successors == True:
       property_successors.gather()
       if property_replace_agent == True:
-        property_who_is_promoted
-        new_property_agent
+        if property_successors.number_gathered() != 1:
+          property_who_is_promoted
+        else:
+          only_one_property_successor
+        #new_property_agent
       property_remainers
     #property_revoke_date
   nav.set_section('section_health')
@@ -84,8 +89,11 @@ code: |
     if any_health_successors == True:
       health_successors.gather()
       if health_replace_agent == True:
-        health_who_is_promoted
-        new_health_agent
+        if health_successors.number_gathered() != 1:
+          health_who_is_promoted
+        else:
+          only_one_health_successor
+        #  new_health_agent
       health_remainers
     #health_revoke_date
   nav.set_section('section_user')
@@ -183,7 +191,7 @@ buttons:
 ---
 id: have document
 question: |
-  Power of attorney copy
+  Have a copy of your Power of Attorney
 subquestion: |
   A copy of your power of attorney document will help you answer the questions in this program. If you have a copy, you should look at it while answering the following questions.
 
@@ -275,7 +283,11 @@ fields:
 ---
 id: property replace agent
 question: |
+  % if property_successors.number_gathered() == 1:
+  Do you want ${property_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Property?
+  % else:
   Do you want one of the successor agents to take over as your new agent for Power of Attorney for Property?
+  % endif
 fields:
   - no label: property_replace_agent
     datatype: yesnoradio
@@ -287,20 +299,48 @@ fields:
   - New agent: property_who_is_promoted
     datatype: object
     choices: property_successors
+    #choices: 
+      #code: |
+        #for person in property_successors:
+          #person.name.full(middle="full")
+    input type: radio
     #I need to figure out how to make this use the full version of names.
 ---
 depends on: 
   - property_who_is_promoted
   - property_successors
+  - property_successors[i].name.first
+  - property_successors[i].name.middle
+  - property_successors[i].name.last
+  - property_successors[i].name.suffix
 sets:
   - new_property_agent.name.first
 code: |
-  for person in property_successors:
-    if person == property_who_is_promoted:
-      new_property_agent.name.first = person.name.first
-      new_property_agent.name.middle = person.name.middle
-      new_property_agent.name.last = person.name.last
-      new_property_agent.name.suffix = person.name.suffix
+  if property_successors.number_gathered() == 1:
+    new_property_agent.name.first = property_successors[0].name.first
+    new_property_agent.name.middle = property_successors[0].name.middle
+    new_property_agent.name.last = property_successors[0].name.last
+    new_property_agent.name.suffix = property_successors[0].name.suffix
+  else:
+    for person in property_successors:
+      if person == property_who_is_promoted:
+        #could these just be new_property_agent = person ?
+        new_property_agent.name.first = person.name.first
+        new_property_agent.name.middle = person.name.middle
+        new_property_agent.name.last = person.name.last
+        new_property_agent.name.suffix = person.name.suffix
+---
+depends on:
+  - property_successors
+  - property_replace_agent
+  - property_successors[i].name.first
+  - property_successors[i].name.middle
+  - property_successors[i].name.last
+  - property_successors[i].name.suffix
+code: |
+  if property_successors.number_gathered() == 1:
+    property_who_is_promoted = property_successors[0]
+  only_one_property_successor = True
 ---
 depends on: 
   - property_who_is_promoted
@@ -435,7 +475,11 @@ fields:
 ---
 id: health replace agent
 question: |
+  % if health_successors.number_gathered() == 1:
+  Do you want ${health_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Health Care?
+  % else:
   Do you want one of the successor agents to take over as your new agent for Power of Attorney for Health Care?
+  % endif
 fields:
   - no label: health_replace_agent
     datatype: yesnoradio
@@ -447,29 +491,58 @@ fields:
   - New agent: health_who_is_promoted
     datatype: object
     choices: health_successors
+    input type: radio
 ---
 depends on: 
   - health_who_is_promoted
   - health_successors
+  - health_successors[i].name.first
+  - health_successors[i].name.middle
+  - health_successors[i].name.last
+  - health_successors[i].name.suffix
 sets:
   - new_health_agent.name.first
 code: |
-  for person in health_successors:
-    if person == health_who_is_promoted:
-      new_health_agent.name.first = person.name.first
-      new_health_agent.name.middle = person.name.middle
-      new_health_agent.name.last = person.name.last
-      new_health_agent.name.suffix = person.name.suffix
+  if health_successors.number_gathered() == 1:
+    new_health_agent.name.first = health_successors[0].name.first
+    new_health_agent.name.middle = health_successors[0].name.middle
+    new_health_agent.name.last = health_successors[0].name.last
+    new_health_agent.name.suffix = health_successors[0].name.suffix
+  else:
+    for person in health_successors:
+      if person == health_who_is_promoted:
+        new_health_agent.name.first = person.name.first
+        new_health_agent.name.middle = person.name.middle
+        new_health_agent.name.last = person.name.last
+        new_health_agent.name.suffix = person.name.suffix
 ---
 depends on: 
   - health_who_is_promoted
   - health_successors
+  - health_successors[i].name.first
+  - health_successors[i].name.middle
+  - health_successors[i].name.last
+  - health_successors[i].name.suffix
 code: |
   for person in health_successors:
     if health_replace_agent == True:
       if person!= health_who_is_promoted:
         person.remain   
   health_remainers = True
+---
+---
+depends on:
+  - health_successors
+  - health_replace_agent
+  - health_successors[i].name.first
+  - health_successors[i].name.middle
+  - health_successors[i].name.last
+  - health_successors[i].name.suffix
+code: |
+  if health_successors.number_gathered() == 1:
+    health_who_is_promoted = health_successors[0]
+  only_one_health_successor = True
+
 ---
 code: |
   health_successors[i].name.first
@@ -672,10 +745,10 @@ attachment:
   docx template file: revocation_notice_health.docx
 ---
 objects:
-  - revocation_property: ALDocument.using(title="Letter to agent of power of attorney for property", filename="revocation_property", has_addendum=False)
-  - revocation_health: ALDocument.using(title="Letter to agent of power of attorney for health", filename="revocation_health", has_addendum=False)
-  - notice_property: ALDocument.using(title="Notice of revocation of power of attorney for property", filename="notice_property", has_addendum=False)
-  - notice_health: ALDocument.using(title="Notice of revocation of power of attorney for health", filename="notice_health", has_addendum=False)
+  - revocation_property: ALDocument.using(title="Letter to agent - property", filename="revocation_property", has_addendum=False)
+  - revocation_health: ALDocument.using(title="Letter to agent - Health Care", filename="revocation_health", has_addendum=False)
+  - notice_property: ALDocument.using(title="Notice of Revocation - Property", filename="notice_property", has_addendum=False)
+  - notice_health: ALDocument.using(title="Notice of Revocation - Health Care", filename="notice_health", has_addendum=False)
   - instructions: ALDocument.using(title="Instructions", filename="instructions", enabled=True, has_addendum=False)
 ---
 depends on: 
@@ -734,11 +807,7 @@ review:
     show if: poa_type["Property"]
   - Edit: property_successors.revisit
     button: |
-      % if property_replace_agent == False:
       **Successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
-      % else:
-      **Other successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
-      % endif
       % for person in property_successors:
       
         * ${ person.name.full(middle="full") }
@@ -746,14 +815,18 @@ review:
     show if: any_property_successors == True and poa_type["Property"] == True
   - Edit: property_replace_agent
     button: |
+      % if property_successors.number_gathered() == 1:
+      **Do you want ${property_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Property?**
+      % else:
       **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Property?**
+      % endif
       ${word(yesno(property_replace_agent))}
     show if: any_property_successors == True and poa_type["Property"] == True
   - Edit: property_who_is_promoted
     button: |
       **Which successor do you want to take over the Power of Attorney for Property?**
       ${property_who_is_promoted}
-    show if: any_property_successors == True and property_replace_agent == True and poa_type["Property"] == True
+    show if: any_property_successors == True and property_replace_agent == True and poa_type["Property"] == True and property_successors.number_gathered() > 1
   - Edit: property_revoke_date
     button: |
       **When do you want to revoke the Power of Attorney for Property?**
@@ -786,11 +859,7 @@ review:
     show if: poa_type["Health"]
   - Edit: health_successors.revisit
     button: |
-      % if health_replace_agent == False:
       **Successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
-      % else:
-      **Other successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
-      % endif
       % for person in health_successors:
       
         * ${ person.name.full(middle="full") }
@@ -798,14 +867,18 @@ review:
     show if: any_health_successors == True and poa_type["Health"] == True
   - Edit: health_replace_agent
     button: |
+      % if health_successors.number_gathered() == 1:
+      **Do you want ${health_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Health Care?**
+      % else:
       **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Health Care?**
+      % endif
       ${word(yesno(health_replace_agent))}
-    show if: any_health_successors == True and poa_type["Health"] == True
+    show if: any_health_successors == True and poa_type["Health"] == True and health_successors.number_gathered() != 0
   - Edit: health_who_is_promoted
     button: |
       **Which successor do you want to take over the Power of Attorney for Health Care?**
       ${health_who_is_promoted}
-    show if: any_health_successors == True and health_replace_agent == True and poa_type["Health"] == True
+    show if: any_health_successors == True and health_replace_agent == True and poa_type["Health"] == True and health_successors.number_gathered() > 1
   - Edit: health_revoke_date
     button: |
       **When do you want to revoke the Power of Attorney for Health?**
@@ -936,11 +1009,7 @@ review:
     show if: poa_type["Property"]
   - Edit: property_successors.revisit
     button: |
-      % if property_replace_agent == False:
       **Successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
-      % else:
-      **Other successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
-      % endif
       % for person in property_successors:
       
         * ${ person.name.full(middle="full") }
@@ -948,14 +1017,18 @@ review:
     show if: any_property_successors == True and poa_type["Property"] == True
   - Edit: property_replace_agent
     button: |
+      % if property_successors.number_gathered() == 1:
+      **Do you want ${property_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Property?**
+      % else:
       **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Property?**
+      % endif
       ${word(yesno(property_replace_agent))}
     show if: any_property_successors == True and poa_type["Property"] == True
   - Edit: property_who_is_promoted
     button: |
       **Which successor do you want to take over the Power of Attorney for Property?**
       ${property_who_is_promoted}
-    show if: any_property_successors == True and property_replace_agent == True and poa_type["Property"] == True
+    show if: any_property_successors == True and property_replace_agent == True and poa_type["Property"] == True and property_successors.number_gathered() != 1
   - Edit: property_revoke_date
     button: |
       **When do you want to revoke the Power of Attorney for Property?**
@@ -999,11 +1072,7 @@ review:
     show if: poa_type["Health"]
   - Edit: health_successors.revisit
     button: |
-      % if health_replace_agent == False:
       **Successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
-      % else:
-      **Other successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
-      % endif
       % for person in health_successors:
       
         * ${ person.name.full(middle="full") }
@@ -1011,14 +1080,18 @@ review:
     show if: any_health_successors == True and poa_type["Health"] == True
   - Edit: health_replace_agent
     button: |
+      % if health_successors.number_gathered() == 1:
+      **Do you want ${health_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Health Care?**
+      % else:
       **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Health Care?**
+      % endif
       ${word(yesno(health_replace_agent))}
-    show if: any_health_successors == True and poa_type["Health"] == True
+    show if: any_health_successors == True and poa_type["Health"] == True and health_successors.number_gathered() != 0
   - Edit: health_who_is_promoted
     button: |
       **Which successor do you want to take over the Power of Attorney for Health Care?**
       ${health_who_is_promoted}
-    show if: any_health_successors == True and health_replace_agent == True and poa_type["Health"] == True
+    show if: any_health_successors == True and health_replace_agent == True and poa_type["Health"] == True and health_successors.number_gathered() > 1
   - Edit: health_revoke_date
     button: |
       **When do you want to revoke the Power of Attorney for Health?**
