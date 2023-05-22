@@ -299,6 +299,8 @@ fields:
   - New agent: property_who_is_promoted
     datatype: object
     choices: property_successors
+    object labeler: |
+      lambda y: y.name.full(middle="full")
     #choices: 
       #code: |
         #for person in property_successors:
@@ -491,6 +493,8 @@ fields:
   - New agent: health_who_is_promoted
     datatype: object
     choices: health_successors
+    object labeler: |
+      lambda y: y.name.full(middle="full")
     input type: radio
 ---
 depends on: 
