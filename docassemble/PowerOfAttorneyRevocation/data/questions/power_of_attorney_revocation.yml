@@ -86,6 +86,8 @@ code: |
     health_agent.name.first
     health_agent.address.address
     health_agent_date
+    if revocable_poa == True:
+      delayed_revocation  
     if any_health_successors == True:
       health_successors.gather()
       if health_replace_agent == True:
@@ -268,11 +270,12 @@ fields:
 ---
 id: property agent date
 question: |
-  When did you first grant Power of Attorney for Property to ${property_agent.name.full(middle='full')}?
+  When did you sign the Power of Attorney for Property}?
 fields:
   - Date: property_agent_date
     datatype: date
     max: ${ today() }
+    required: False
 ---
 id: any property successors
 question: |
@@ -462,11 +465,34 @@ fields:
 ---
 id: health agent date
 question: |
-  When did you first grant Power of Attorney for Health Care to ${health_agent.name.full(middle='full')}?
+  When did you sign the Power of Attorney for Health Care?
 fields:
   - Date: health_agent_date
     datatype: date
     max: ${ today() }
+    required: False
+---
+depends on:
+  - health_agent_date
+code: |
+  if health_agent_date == "":
+    revocable_poa = True
+  else:
+    if as_datetime(health_agent_date) > as_datetime('December 31, 2019'):
+      revocable_poa = True
+    else:
+      revocable_poa = False
+---
+id: delayed revocation
+question: |
+  Does your Power of Attorney for Health Care say your revocation will be delayed for 30 days?
+subquestion: |
+  When you made your Power of Attorney, you may have included something like this sentence: "I elect to delay revocation of this Power of Attorney for 30 days after I communicate my intent to revoke it."
+  
+  If your Power of Attorney says your revocation will be delayed, ${health_agent.name.full(middle='full')} will still be your agent until 30 days after you send your Notice of Revocation.
+fields:
+  - no label: delayed_revocation
+    datatype: yesnoradio
 ---
 id: any health successors
 question: |
@@ -856,6 +882,11 @@ review:
       **Date the Power of Attorney for Health Care began:**
       ${health_agent_date}
     show if: poa_type["Health"]
+  - Edit: delayed_revocation
+    button: |
+      **Will your revocation of the Power of Attorney for Health Care be delayed for 30 days?**
+      ${word(yesno(delayed_revocation))}
+    show if: poa_type["Health"] == True and revocable_poa == True
   - Edit: any_health_successors
     button: |
       **Did the Power of Attorney for Health Care list any successor agents?**
@@ -1069,6 +1100,11 @@ review:
       **Date the Power of Attorney for Health Care began:**
       ${health_agent_date}
     show if: poa_type["Health"]
+  - Edit: delayed_revocation
+    button: |
+      **Will your revocation of the Power of Attorney for Health Care be delayed for 30 days?**
+      ${word(yesno(delayed_revocation))}
+    show if: poa_type["Health"] == True and revocable_poa == True
   - Edit: any_health_successors
     button: |
       **Did the Power of Attorney for Health Care list any successor agents?**
