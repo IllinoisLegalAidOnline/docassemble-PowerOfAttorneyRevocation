@@ -143,35 +143,6 @@ content: |
 
   This is an example of help. Click again to hide.
 ---
-id: accept terms
-question: |
-  Terms of use
-subquestion: |
-  This program does not provide legal advice. It does not take the place of advice from a lawyer.
-
-  Using this program does not create an attorney-client relationship between you and Illinois Legal Aid Online or its employees.
-
-  ${ collapse_template(get_legal_help) }  
-fields:
-  - To continue, you must accept the [**terms of use**](https://www.illinoislegalaid.org/about/terms-of-use).: accept
-    datatype: checkboxes
-    none of the above: False
-    minlength: 1
-    choices:
-      - I accept the terms of use.
-    validation messages:
-      minlength: |
-        You cannot continue unless you agree to the terms of use.
-continue button field: accept_terms
----
-template: get_legal_help
-subject: |
-  **What if I need legal advice?**
-content: |  
-  If you have questions or concerns about your legal problem and want legal advice you should talk to a lawyer.
- 
-  Use [**Get Legal Help**](https://www.illinoislegalaid.org/get-legal-help) to find free or low-cost legal services in your area.
----
 id: in illinois
 question: |
   Was the Power of Attorney you want to revoke made in Illinois?
@@ -270,7 +241,7 @@ fields:
 ---
 id: property agent date
 question: |
-  When did you sign the Power of Attorney for Property}?
+  When did you sign the Power of Attorney for Property?
 fields:
   - Date: property_agent_date
     datatype: date
@@ -490,6 +461,10 @@ subquestion: |
   When you made your Power of Attorney, you may have included something like this sentence: "I elect to delay revocation of this Power of Attorney for 30 days after I communicate my intent to revoke it."
   
   If your Power of Attorney says your revocation will be delayed, ${health_agent.name.full(middle='full')} will still be your agent until 30 days after you send your Notice of Revocation.
+  
+  % if health_agent_date == "":
+  If your Power of Attorney was signed before January 1st, 2020, you should select **No**. Illinois did not allow Power of Attorney forms to delay revocation until 2020.
+  % endif
 fields:
   - no label: delayed_revocation
     datatype: yesnoradio
@@ -776,9 +751,9 @@ attachment:
 ---
 objects:
   - revocation_property: ALDocument.using(title="Letter to agent - property", filename="revocation_property", has_addendum=False)
-  - revocation_health: ALDocument.using(title="Letter to agent - Health Care", filename="revocation_health", has_addendum=False)
-  - notice_property: ALDocument.using(title="Notice of Revocation - Property", filename="notice_property", has_addendum=False)
-  - notice_health: ALDocument.using(title="Notice of Revocation - Health Care", filename="notice_health", has_addendum=False)
+  - revocation_health: ALDocument.using(title="Letter to agent - health care", filename="revocation_health", has_addendum=False)
+  - notice_property: ALDocument.using(title="Notice of Revocation - property", filename="notice_property", has_addendum=False)
+  - notice_health: ALDocument.using(title="Notice of Revocation - health care", filename="notice_health", has_addendum=False)
   - instructions: ALDocument.using(title="Instructions", filename="instructions", enabled=True, has_addendum=False)
 ---
 depends on: 
@@ -827,8 +802,12 @@ review:
     show if: poa_type["Property"]
   - Edit: property_agent_date
     button: |
-      **Date the Power of Attorney for Property began:**
+      **Date the Power of Attorney for Property was signed:**
+      % if property_agent_date != "":
       ${property_agent_date}
+      % else:
+      None entered
+      % endif
     show if: poa_type["Property"]
   - Edit: any_property_successors
     button: |
@@ -879,8 +858,12 @@ review:
     show if: poa_type["Health"]
   - Edit: health_agent_date
     button: |
-      **Date the Power of Attorney for Health Care began:**
+      **Date the Power of Attorney for Health Care was signed:**
+      % if health_agent_date != "":
       ${health_agent_date}
+      % else:
+      None entered
+      % endif
     show if: poa_type["Health"]
   - Edit: delayed_revocation
     button: |
@@ -1034,8 +1017,12 @@ review:
     show if: poa_type["Property"]
   - Edit: property_agent_date
     button: |
-      **Date the Power of Attorney for Property began:**
+      **Date the Power of Attorney for Property was signed:**
+      % if property_agent_date != "":
       ${property_agent_date}
+      % else:
+      None entered
+      % endif
     show if: poa_type["Property"]
   - Edit: any_property_successors
     button: |
@@ -1097,8 +1084,12 @@ review:
     show if: poa_type["Health"]
   - Edit: health_agent_date
     button: |
-      **Date the Power of Attorney for Health Care began:**
+      **Date the Power of Attorney for Health Care was signed:**
+      % if health_agent_date != "":
       ${health_agent_date}
+      % else:
+      None entered
+      % endif
     show if: poa_type["Health"]
   - Edit: delayed_revocation
     button: |
