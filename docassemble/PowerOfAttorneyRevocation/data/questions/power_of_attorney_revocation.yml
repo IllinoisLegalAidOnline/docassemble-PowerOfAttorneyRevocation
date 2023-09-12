@@ -995,6 +995,7 @@ review:
       ${word(yesno(x.remain))}
     show if: health_replace_agent
 ---
+section: Power of Attorney for Property
 event: section_property
 question: |
   About the Power of Attorney for Property
@@ -1057,6 +1058,7 @@ review:
       ${property_revoke_date}
     show if: poa_type["Property"]
 ---
+section: Power of Attorney for Health Care
 event: section_health
 question: |
   About the Power of Attorney for Health Care
@@ -1129,6 +1131,7 @@ review:
       ${health_revoke_date}
     show if: poa_type["Health"]
 ---
+section: Your information
 event: section_user
 question: |
   Your information
