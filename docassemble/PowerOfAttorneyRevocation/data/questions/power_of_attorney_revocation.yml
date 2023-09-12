@@ -721,14 +721,14 @@ content: |
 ---
 attachment:
   name: Letter to agent of Power of Attorney for Property
-  variable name: revocation_property[i]
-  filename: revocation_property
+  variable name: letter_property[i]
+  filename: letter_property
   docx template file: poa_revocation_property.docx
 ---
 attachment:
   name: Letter to agent of Power of Attorney for Health Care
-  variable name: revocation_health[i]
-  filename: revocation_health
+  variable name: letter_health[i]
+  filename: letter_health
   docx template file: poa_revocation_health.docx
 ---
 attachment:
@@ -750,8 +750,8 @@ attachment:
   docx template file: revocation_notice_health.docx
 ---
 objects:
-  - revocation_property: ALDocument.using(title="Letter to agent - property", filename="revocation_property", has_addendum=False)
-  - revocation_health: ALDocument.using(title="Letter to agent - health care", filename="revocation_health", has_addendum=False)
+  - letter_property: ALDocument.using(title="Letter to agent - property", filename="letter_property", has_addendum=False)
+  - letter_health: ALDocument.using(title="Letter to agent - health care", filename="letter_health", has_addendum=False)
   - notice_property: ALDocument.using(title="Notice of Revocation - property", filename="notice_property", has_addendum=False)
   - notice_health: ALDocument.using(title="Notice of Revocation - health care", filename="notice_health", has_addendum=False)
   - instructions: ALDocument.using(title="Instructions", filename="instructions", enabled=True, has_addendum=False)
@@ -759,19 +759,19 @@ objects:
 depends on: 
   - poa_type
 code: |
-  revocation_property.enabled = False
-  revocation_health.enabled = False
+  letter_property.enabled = False
+  letter_health.enabled = False
   notice_health.enabled = False
   notice_property.enabled = False
   if poa_type["Property"] == True:
-    revocation_property.enabled = True
+    letter_property.enabled = True
     notice_property.enabled = True
   if poa_type["Health"] == True:
-    revocation_health.enabled = True
+    letter_health.enabled = True
     notice_health.enabled = True
 ---
 objects:
-  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, revocation_property, notice_property, revocation_health, notice_health], filename="power_of_attorney_revocation.pdf", title="All forms")
+  - al_user_bundle: ALDocumentBundle.using(elements=[instructions, letter_property, notice_property, letter_health, notice_health], filename="power_of_attorney_revocation.pdf", title="All forms")
 ---
 id: review screen
 event: review_answers
