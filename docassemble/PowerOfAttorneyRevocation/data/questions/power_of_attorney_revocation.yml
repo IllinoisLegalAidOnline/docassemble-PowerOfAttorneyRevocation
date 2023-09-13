@@ -650,6 +650,8 @@ fields:
       states_list() 
   - ZIP code: user.address.zip
   - County: user.address.county
+  - note: |
+      ${collapse_template(county_lookup_help) }
 ---
 depends on:
   - property_replace_agent
@@ -697,7 +699,7 @@ subquestion: |
 
   ${ al_user_bundle.send_button_html(show_editable_checkbox=False) }
   
-  **Note:** This program does not send your form. You will need to do this yourself.
+  **Note:** This program does not send your forms. You will need to do this yourself.
 
   Thank you for using ILAO Easy Forms!
 under: |
