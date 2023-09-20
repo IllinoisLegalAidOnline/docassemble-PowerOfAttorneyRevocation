@@ -214,7 +214,7 @@ subquestion: |
 ---
 id: property agent name
 question: |
-  What is the name of the agent whose Power of Attorney for Property you would like to revoke?
+  What is the name of the agent whose Power of Attorney for Property you want to revoke?
 fields:
   - First: property_agent.name.first
   - Middle: property_agent.name.middle
@@ -409,7 +409,7 @@ code: |
 ---
 id: health agent name
 question: |
-  What is the name of the agent whose Power of Attorney for Health Care you would like to revoke?
+  What is the name of the agent whose Power of Attorney for Health Care you want to revoke?
 fields:
   - First: health_agent.name.first
   - Middle: health_agent.name.middle
@@ -794,7 +794,7 @@ review:
       % endif
   - Edit: property_agent.name.first
     button: |
-      **Name of the agent whose Power of Attorney for Property you would like to revoke:**
+      **Name of the agent whose Power of Attorney for Property you want to revoke:**
       ${property_agent.name.full(middle='full')}
     show if: poa_type["Property"]
   - Edit: property_agent.address.address
@@ -850,7 +850,7 @@ review:
     show if: poa_type["Property"] == True and poa_type["Health"] == True
   - Edit: health_agent.name.first
     button: |
-      **Name of the agent whose Power of Attorney for Health Care you would like to revoke:**
+      **Name of the agent whose Power of Attorney for Health Care you want to revoke:**
       ${health_agent.name.full(middle='full')}
     show if: poa_type["Health"]
   - Edit: health_agent.address.address
@@ -1010,7 +1010,7 @@ review:
       ${word(yesno(poa_type["Property"]))}
   - Edit: property_agent.name.first
     button: |
-      **Name of the agent whose Power of Attorney for Property you would like to revoke:**
+      **Name of the agent whose Power of Attorney for Property you want to revoke:**
       ${property_agent.name.full(middle='full')}
     show if: poa_type["Property"]
   - Edit: property_agent.address.address
@@ -1078,7 +1078,7 @@ review:
     show if: poa_type["Property"] == True and poa_type["Health"] == True
   - Edit: health_agent.name.first
     button: |
-      **Name of the agent whose Power of Attorney for Health Care you would like to revoke:**
+      **Name of the agent whose Power of Attorney for Health Care you want to revoke:**
       ${health_agent.name.full(middle='full')}
     show if: poa_type["Health"]
   - Edit: health_agent.address.address
