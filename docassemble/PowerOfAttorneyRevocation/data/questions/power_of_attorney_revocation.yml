@@ -61,7 +61,7 @@ code: |
   if poa_type["Property"] == True:
     property_intro
     property_agent.name.first
-    property_agent.address.address
+    property_agent.in_america
     property_agent_date
     if any_property_successors == True:
       property_successors.gather()
@@ -84,7 +84,7 @@ code: |
     else:
       same_agent = False
     health_agent.name.first
-    health_agent.address.address
+    health_agent.in_america
     health_agent_date
     if revocable_poa == True:
       delayed_revocation  
@@ -227,17 +227,37 @@ fields:
 ---
 id: property agent address
 question: |
-  What is ${property_agent.name.full(middle='full')}'s address?
+  Enter  ${property_agent.name.full(middle='full')}'s address
+subquestion: |
+  ${collapse_template(intl_address_help)}  
 fields:
+  - Does ${property_agent.name.full(middle='full')} have a United States address?: property_agent.in_america
+    datatype: yesnoradio
+    default: True
+    help: |
+      Click **No** if you want to list an address outside the United States. You should enter the international address using the English alphabet.
   - Street address: property_agent.address.address
     address autocomplete: True
+    show if: property_agent.in_america
   - Address line 2: property_agent.address.unit
     required: False
+    show if: property_agent.in_america
   - City: property_agent.address.city
+    show if: property_agent.in_america
   - State: property_agent.address.state
+    show if: property_agent.in_america
     code: |
       states_list() 
   - ZIP code: property_agent.address.zip
+    show if: property_agent.in_america
+  - Non-US address line 1 (street address, apartment number): property_agent.intl_address_1
+    show if: 
+      variable: property_agent.in_america
+      is: False
+  - Non-US address line 2 (city, province or state, postal code, country): property_agent.intl_address_2
+    show if: 
+      variable: property_agent.in_america
+      is: False
 ---
 id: property agent date
 question: |
@@ -330,7 +350,7 @@ code: |
 ---
 code: |
   property_successors[i].name.first
-  property_successors[i].address.address
+  property_successors[i].in_america
   property_successors[i].complete = True
 ---
 sets:
@@ -350,19 +370,39 @@ fields:
 ---
 id: successor property address
 sets:
-  - property_successors[i].address.address
+  - property_successors[i].in_america
 question: |
-  What is ${property_successors[i].name.full(middle='full')}'s address?
+  Enter ${property_successors[i].name.full(middle='full')}'s address
+subquestion: |
+  ${collapse_template(success_intl_address_help)}
 fields:
+  - Does ${property_successors[i].name.full(middle='full')} have a United States address?: property_successors[i].in_america
+    datatype: yesnoradio
+    default: True
+    help: |
+      Click **No** if you want to list an address outside the United States. You should enter the international address using the English alphabet.
   - Street address: property_successors[i].address.address
     address autocomplete: True
+    show if: property_successors[i].in_america
   - Address line 2: property_successors[i].address.unit
     required: False
+    show if: property_successors[i].in_america
   - City: property_successors[i].address.city
+    show if: property_successors[i].in_america
   - State: property_successors[i].address.state
+    show if: property_successors[i].in_america
     code: |
       states_list() 
   - ZIP code: property_successors[i].address.zip
+    show if: property_successors[i].in_america
+  - Non-US address line 1 (street address, apartment number): property_successors[i].intl_address_1
+    show if: 
+      variable: property_successors[i].in_america
+      is: False
+  - Non-US address line 2 (city, province or state, postal code, country): property_successors[i].intl_address_2
+    show if: 
+      variable: property_successors[i].in_america
+      is: False
 ---
 id: property successor remain
 sets:
@@ -400,7 +440,17 @@ depends on:
   - poa_type
   - same_agent
   - property_agent.name.first
+  - property_agent.name.middle
+  - property_agent.name.last
+  - property_agent.name.suffix
   - property_agent.address.address
+  - property_agent.address.unit
+  - property_agent.address.city
+  - property_agent.address.state
+  - property_agent.address.zip
+  - property_agent.in_america
+  - property_agent.intl_address_1
+  - property_agent.intl_address_2
 code: |
   if poa_type["Property"] == True:
     if same_agent == True:
@@ -422,17 +472,43 @@ fields:
 ---
 id: health agent address
 question: |
-  What is ${health_agent.name.full(middle='full')}'s address?
+  Enter ${health_agent.name.full(middle='full')}'s address
+subquestion: |
+  ${collapse_template(intl_address_help)}
 fields:
+  - Does ${health_agent.name.full(middle='full')} have a United States address?: health_agent.in_america
+    datatype: yesnoradio
+    default: True
+    help: |
+      Click **No** if you want to list an address outside the United States. You should enter the international address using the English alphabet.
   - Street address: health_agent.address.address
     address autocomplete: True
+    show if: health_agent.in_america
   - Address line 2: health_agent.address.unit
     required: False
+    show if: health_agent.in_america
   - City: health_agent.address.city
+    show if: health_agent.in_america
   - State: health_agent.address.state
+    show if: health_agent.in_america
     code: |
       states_list() 
   - ZIP code: health_agent.address.zip
+    show if: health_agent.in_america
+  - Non-US address line 1 (street address, apartment number): health_agent.intl_address_1
+    show if: 
+      variable: health_agent.in_america
+      is: False
+  - Non-US address line 2 (city, province or state, postal code, country): health_agent.intl_address_2
+    show if: 
+      variable: health_agent.in_america
+      is: False
+---
+template: intl_address_help
+subject: |
+  **What if my agent does not have a United States address?**
+content: |  
+  For international addresses, there will be space for two lines to enter the address. You should enter the international address using the English alphabet.
 ---
 id: health agent date
 question: |
@@ -551,7 +627,7 @@ code: |
 ---
 code: |
   health_successors[i].name.first
-  health_successors[i].address.address
+  health_successors[i].in_america
   health_successors[i].complete = True
 ---
 sets:
@@ -571,19 +647,45 @@ fields:
 ---
 id: successor address
 sets:
-  - health_successors[i].address.address
+  - health_successors[i].in_america
 question: |
   What is ${health_successors[i].name.full(middle='full')}'s address?
+subquestion: |
+  ${collapse_template(success_intl_address_help)}
 fields:
+  - Does ${health_successors[i].name.full(middle='full')} have a United States address?: health_successors[i].in_america
+    datatype: yesnoradio
+    default: True
+    help: |
+      Click **No** if you want to list an address outside the United States. You should enter the international address using the English alphabet.
   - Street address: health_successors[i].address.address
     address autocomplete: True
+    show if: health_successors[i].in_america
   - Address line 2: health_successors[i].address.unit
     required: False
+    show if: health_successors[i].in_america
   - City: health_successors[i].address.city
+    show if: health_successors[i].in_america
   - State: health_successors[i].address.state
+    show if: health_successors[i].in_america
     code: |
       states_list() 
   - ZIP code: health_successors[i].address.zip
+    show if: health_successors[i].in_america
+  - Non-US address line 1 (street address, apartment number): health_successors[i].intl_address_1
+    show if: 
+      variable: health_successors[i].in_america
+      is: False
+  - Non-US address line 2 (city, province or state, postal code, country): health_successors[i].intl_address_2
+    show if: 
+      variable: health_successors[i].in_america
+      is: False
+---
+template: success_intl_address_help
+subject: |
+  **What if my successor agent does not have a United States address?**
+content: |  
+  For international addresses, there will be space for two lines to enter the address. You should enter the international address using the English alphabet.
 ---
 id: health successor remain
 sets:
@@ -797,10 +899,14 @@ review:
       **Name of the agent whose Power of Attorney for Property you want to revoke:**
       ${property_agent.name.full(middle='full')}
     show if: poa_type["Property"]
-  - Edit: property_agent.address.address
+  - Edit: property_agent.in_america
     button: |
       **${property_agent.name.full(middle='full')}'s address:**
+      % if property_agent.in_america == True:
       ${property_agent.address.on_one_line(bare="True")}
+      % else:
+      ${property_agent.intl_address_1}, ${property_agent.intl_address_2}
+      % endif
     show if: poa_type["Property"]
   - Edit: property_agent_date
     button: |
@@ -853,10 +959,14 @@ review:
       **Name of the agent whose Power of Attorney for Health Care you want to revoke:**
       ${health_agent.name.full(middle='full')}
     show if: poa_type["Health"]
-  - Edit: health_agent.address.address
+  - Edit: health_agent.in_america
     button: |
       **${health_agent.name.full(middle='full')}'s address:**
+      % if health_agent.in_america == True:
       ${health_agent.address.on_one_line(bare="True")}
+      % else:
+      ${health_agent.intl_address_1}, ${health_agent.intl_address_2}
+      % endif
     show if: poa_type["Health"]
   - Edit: health_agent_date
     button: |
@@ -932,7 +1042,7 @@ rows: property_successors
 columns:
   - Name: |
       row_item.name.full(middle="full") if defined("row_item.name.first") else ""
-  - Address and status: |
+  - Address: |
       action_button_html(url_action(row_item.attr_name("property_review_successor")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
@@ -947,10 +1057,14 @@ review:
     button: |
       **Successor name:**
       ${ x.name.full(middle="full")  }
-  - Edit: x.address.address
+  - Edit: x.in_america
     button: |
-      **${ x.name.full(middle="full") }'s address: **
+      **${ x.name.full(middle="full") }'s address:**
+      % if x.in_america == True:
       ${ x.address.on_one_line(bare=True) }
+      % else:
+      ${x.intl_address_1}, ${x.intl_address_2}
+      % endif
   - Edit: x.remain
     button: |
       **Do you want ${x.name.full(middle="full")} to remain as a successor?**
@@ -972,7 +1086,7 @@ rows: health_successors
 columns:
   - Name: |
       row_item.name.full(middle="full") if defined("row_item.name.first") else ""
-  - Address and status: |
+  - Address: |
       action_button_html(url_action(row_item.attr_name("health_review_successor")), label="Edit", icon="pencil-alt")
 delete buttons: True
 confirm: True
@@ -987,10 +1101,14 @@ review:
     button: |
       **Successor name:**
       ${ x.name.full(middle="full")  }
-  - Edit: x.address.address
+  - Edit: x.in_america
     button: |
-      **${ x.name.full(middle="full") }'s address: **
+      **${ x.name.full(middle="full") }'s address:**
+      % if x.in_america == True:
       ${ x.address.on_one_line(bare=True) }
+      % else:
+      ${x.intl_address_1}, ${x.intl_address_2}
+      % endif
   - Edit: x.remain
     button: |
       **Do you want ${x.name.full(middle="full")} to remain as a successor?**
@@ -1013,10 +1131,14 @@ review:
       **Name of the agent whose Power of Attorney for Property you want to revoke:**
       ${property_agent.name.full(middle='full')}
     show if: poa_type["Property"]
-  - Edit: property_agent.address.address
+  - Edit: property_agent.in_america
     button: |
       **${property_agent.name.full(middle='full')}'s address:**
+      % if property_agent.in_america == True:
       ${property_agent.address.on_one_line(bare="True")}
+      % else:
+      ${property_agent.intl_address_1}, ${property_agent.intl_address_2}
+      % endif
     show if: poa_type["Property"]
   - Edit: property_agent_date
     button: |
@@ -1081,10 +1203,14 @@ review:
       **Name of the agent whose Power of Attorney for Health Care you want to revoke:**
       ${health_agent.name.full(middle='full')}
     show if: poa_type["Health"]
-  - Edit: health_agent.address.address
+  - Edit: health_agent.in_america
     button: |
       **${health_agent.name.full(middle='full')}'s address:**
+      % if health_agent.in_america == True:
       ${health_agent.address.on_one_line(bare="True")}
+      % else:
+      ${health_agent.intl_address_1}, ${health_agent.intl_address_2}
+      % endif
     show if: poa_type["Health"]
   - Edit: health_agent_date
     button: |
