@@ -50,6 +50,7 @@ mandatory: True
 code: |
   nav.set_section('section_intro')
   sees_nav_bar
+  snapshot_start
   set_progress(5)
   how_to_use
   accept_terms
@@ -104,7 +105,36 @@ code: |
   user.address.address
   user.address.county_correct
   nav.set_section('section_download')
+  forms_assembling
+  snapshot_forms
   get_docs_screen
+---
+code: |
+  stuff_to_snapshot = {
+  	'start_time': str(current_datetime().format_datetime()),
+  	'started_interview': True, 
+  	}
+    
+  stuff_to_snapshot['user_zip'] = showifdef('users[0].address.zip')
+
+  stuff_to_snapshot['downloaded_forms'] = showifdef('forms_assembling')
+  
+  stuff_to_snapshot['revoking_health'] = showifdef('poa_type["Health"]') 
+  
+  stuff_to_snapshot['revoking_property'] = showifdef('poa_type["Property"]') 
+  
+  store_variables_snapshot(
+  	data=stuff_to_snapshot, persistent=True
+  	)
+  snapshot_interview_state = True
+---
+code: |
+  snapshot_interview_state
+  snapshot_start = True  
+---
+code: |
+  reconsider('snapshot_interview_state')
+  snapshot_forms = True
 ---
 id: welcome
 question: |
@@ -784,6 +814,17 @@ code: |
   else:
     health_succcessors_list = ""
 ---
+id: forms assembling
+continue button field: forms_assembling
+question: |
+  Almost done
+subquestion: |
+  After you click **Next**, it may take a few moments to finish making your forms.
+  
+  ###### You do not need to refresh your screen. Hang in there!
+  
+  [NEWLINE]
+---
 id: get docs screen
 event: get_docs_screen
 question: |
@@ -1027,7 +1068,7 @@ review:
       **Your address:**
       ${user.address.on_one_line(bare="True")}, ${end_in_county(user.address.county)}
 ---
-id: property successors edit
+id: property successors review screen
 continue button field: property_successors.revisit
 question: |
   Edit the successors for the Power of Attorney for Property
@@ -1047,7 +1088,7 @@ columns:
 delete buttons: True
 confirm: True
 ---
-id: property successor review
+id: property successor review screen
 continue button field: x.property_review_successor
 generic object: ALIndividual
 question: |
@@ -1071,7 +1112,7 @@ review:
       ${word(yesno(x.remain))}
     show if: property_replace_agent
 ---
-id: health successors edit
+id: health successors review screen
 continue button field: health_successors.revisit
 question: |
   Edit the successors for the Power of Attorney for Health Care
@@ -1091,7 +1132,7 @@ columns:
 delete buttons: True
 confirm: True
 ---
-id: health successor review
+id: health successor review screen
 continue button field: x.health_review_successor
 generic object: ALIndividual
 question: |
@@ -1116,6 +1157,7 @@ review:
     show if: health_replace_agent
 ---
 section: Power of Attorney for Property
+id: property review screen
 event: section_property
 question: |
   About the Power of Attorney for Property
@@ -1183,6 +1225,7 @@ review:
     show if: poa_type["Property"]
 ---
 section: Power of Attorney for Health Care
+id: health review screen
 event: section_health
 question: |
   About the Power of Attorney for Health Care
@@ -1260,6 +1303,7 @@ review:
     show if: poa_type["Health"]
 ---
 section: Your information
+id: user info review screen
 event: section_user
 question: |
   Your information
