@@ -247,18 +247,28 @@ question: |
 subquestion: |
   The next questions will ask you about your Power of Attorney for Property.
 ---
+sets:
+  - property_agent.name.first
+  - property_agent.name.middle
+  - property_agent.name.last
+  - property_agent.name.suffix
 id: property agent name
 question: |
   What is the name of the agent whose Power of Attorney for Property you want to revoke?
+subquestion: |
+  Sometimes the agent with Powers of Attorney is an agency or organization instead of a person. If the agent whose Power of Attorney is not a person, select **Entity**.
 fields:
-  - First: property_agent.name.first
-  - Middle: property_agent.name.middle
-    required: False
-  - Last: property_agent.name.last
-  - Suffix: property_agent.name.suffix
-    code: |
-      name_suffix()
-    required: False  
+  - code: |
+      property_agent.name_fields(person_or_business='unsure')
+#fields:
+#  - First: property_agent.name.first
+#  - Middle: property_agent.name.middle
+#    required: False
+#  - Last: property_agent.name.last
+#  - Suffix: property_agent.name.suffix
+#    code: |
+#      name_suffix()
+#    required: False  
 ---
 id: property agent address
 question: |
@@ -492,18 +502,54 @@ code: |
       health_agent = property_agent
   double_agent_code = True
 ---
+generic object: ALIndividual
+template: x.person_type_label
+content: |
+ Is the agent a person or an entity?
+---
+generic object: ALIndividual
+template: x.business_name_label
+content: |
+  Name
+---
+generic object: ALIndividual
+template: x.individual_choice_label
+content: |
+  Person
+---
+generic object: ALIndividual
+template: x.business_choice_label
+content: |
+  Entity
+---
+template: about_entities
+subject: |
+  **About agents who are not people**
+content: |
+  Some Powers of Attorney have an entity as an agent, rather than a person. An entity could be an agency, a trust, or another type of organization.
+---
+sets:
+  - health_agent.name.first
+  - health_agent.name.middle
+  - health_agent.name.last
+  - health_agent.name.suffix
 id: health agent name
 question: |
   What is the name of the agent whose Power of Attorney for Health Care you want to revoke?
-fields:
-  - First: health_agent.name.first
-  - Middle: health_agent.name.middle
-    required: False
-  - Last: health_agent.name.last
-  - Suffix: health_agent.name.suffix
-    code: |
-      name_suffix()
-    required: False  
+subquestion: |
+  Sometimes the agent with Powers of Attorney is an agency or organization instead of a person. If the agent whose Power of Attorney is not a person, select **Entity**.
+fields: 
+  - code: |
+      health_agent.name_fields(person_or_business='unsure')
+#fields:
+#  - First: health_agent.name.first
+#  - Middle: health_agent.name.middle
+#    required: False
+#  - Last: health_agent.name.last
+#  - Suffix: health_agent.name.suffix
+#    code: |
+#      name_suffix()
+#    required: False  
 ---
 id: health agent address
 question: |
