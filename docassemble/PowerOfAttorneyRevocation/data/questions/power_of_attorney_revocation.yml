@@ -272,11 +272,11 @@ fields:
 ---
 id: property agent address
 question: |
-  Enter  ${property_agent.name.full(middle='full')}'s address
+  Enter  ${property_agent.name_full()}'s address
 subquestion: |
   ${collapse_template(intl_address_help)}  
 fields:
-  - Does ${property_agent.name.full(middle='full')} have a United States address?: property_agent.in_america
+  - Does ${property_agent.name_full()} have a United States address?: property_agent.in_america
     datatype: yesnoradio
     default: True
     help: |
@@ -323,7 +323,7 @@ fields:
 id: property replace agent
 question: |
   % if property_successors.number_gathered() == 1:
-  Do you want ${property_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Property?
+  Do you want ${property_successors[0].name_full()} to take over as your new agent for Power of Attorney for Property?
   % else:
   Do you want one of the successor agents to take over as your new agent for Power of Attorney for Property?
   % endif
@@ -333,17 +333,17 @@ fields:
 ---
 id: new property agent select
 question: |
-  Which of your successor agents would you like to replace ${property_agent.name.full(middle='full')}?
+  Which of your successor agents would you like to replace ${property_agent.name_full()}?
 fields: 
   - New agent: property_who_is_promoted
     datatype: object
     choices: property_successors
     object labeler: |
-      lambda y: y.name.full(middle="full")
+      lambda y: y.name_full()
     #choices: 
       #code: |
         #for person in property_successors:
-          #person.name.full(middle="full")
+          #person.name_full()
     input type: radio
     #I need to figure out how to make this use the full version of names.
 ---
@@ -417,11 +417,11 @@ id: successor property address
 sets:
   - property_successors[i].in_america
 question: |
-  Enter ${property_successors[i].name.full(middle='full')}'s address
+  Enter ${property_successors[i].name_full()}'s address
 subquestion: |
   ${collapse_template(success_intl_address_help)}
 fields:
-  - Does ${property_successors[i].name.full(middle='full')} have a United States address?: property_successors[i].in_america
+  - Does ${property_successors[i].name_full()} have a United States address?: property_successors[i].in_america
     datatype: yesnoradio
     default: True
     help: |
@@ -453,7 +453,7 @@ id: property successor remain
 sets:
   - property_successors[i].remain
 question: |
-  Would you like ${property_successors[i].name.full(middle='full')} to remain a successor agent?
+  Would you like ${property_successors[i].name_full()} to remain a successor agent?
 fields:
   - no label: property_successors[i].remain
     datatype: yesnoradio
@@ -476,7 +476,7 @@ subquestion: |
 ---
 id: same agent
 question: |
-  Is ${property_agent.name.full(middle='full')} also your agent for your Power of Attorney for Health Care?
+  Is ${property_agent.name_full()} also your agent for your Power of Attorney for Health Care?
 fields:
   - no label: same_agent
     datatype: yesnoradio
@@ -553,11 +553,11 @@ fields:
 ---
 id: health agent address
 question: |
-  Enter ${health_agent.name.full(middle='full')}'s address
+  Enter ${health_agent.name_full()}'s address
 subquestion: |
   ${collapse_template(intl_address_help)}
 fields:
-  - Does ${health_agent.name.full(middle='full')} have a United States address?: health_agent.in_america
+  - Does ${health_agent.name_full()} have a United States address?: health_agent.in_america
     datatype: yesnoradio
     default: True
     help: |
@@ -617,7 +617,7 @@ question: |
 subquestion: |
   When you made your Power of Attorney, you may have included something like this sentence: "I elect to delay revocation of this Power of Attorney for 30 days after I communicate my intent to revoke it."
   
-  If your Power of Attorney says your revocation will be delayed, ${health_agent.name.full(middle='full')} will still be your agent until 30 days after you send your Notice of Revocation.
+  If your Power of Attorney says your revocation will be delayed, ${health_agent.name_full()} will still be your agent until 30 days after you send your Notice of Revocation.
   
   % if health_agent_date == "":
   If your Power of Attorney was signed before January 1st, 2020, you should select **No**. Illinois did not allow Power of Attorney forms to delay revocation until 2020.
@@ -636,7 +636,7 @@ fields:
 id: health replace agent
 question: |
   % if health_successors.number_gathered() == 1:
-  Do you want ${health_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Health Care?
+  Do you want ${health_successors[0].name_full()} to take over as your new agent for Power of Attorney for Health Care?
   % else:
   Do you want one of the successor agents to take over as your new agent for Power of Attorney for Health Care?
   % endif
@@ -646,13 +646,13 @@ fields:
 ---
 id: new health agent select
 question: |
-  Which of your successor agents would you like to replace ${health_agent.name.full(middle='full')}?
+  Which of your successor agents would you like to replace ${health_agent.name_full()}?
 fields: 
   - New agent: health_who_is_promoted
     datatype: object
     choices: health_successors
     object labeler: |
-      lambda y: y.name.full(middle="full")
+      lambda y: y.name_full()
     input type: radio
 ---
 depends on: 
@@ -730,11 +730,11 @@ id: successor address
 sets:
   - health_successors[i].in_america
 question: |
-  What is ${health_successors[i].name.full(middle='full')}'s address?
+  What is ${health_successors[i].name_full()}'s address?
 subquestion: |
   ${collapse_template(success_intl_address_help)}
 fields:
-  - Does ${health_successors[i].name.full(middle='full')} have a United States address?: health_successors[i].in_america
+  - Does ${health_successors[i].name_full()} have a United States address?: health_successors[i].in_america
     datatype: yesnoradio
     default: True
     help: |
@@ -772,7 +772,7 @@ id: health successor remain
 sets:
   - health_successors[i].remain
 question: |
-  Would you like ${health_successors[i].name.full(middle='full')} to remain a successor agent?
+  Would you like ${health_successors[i].name_full()} to remain a successor agent?
 fields:
   - no label: health_successors[i].remain
     datatype: yesnoradio
@@ -994,11 +994,11 @@ review:
   - Edit: property_agent.name.first
     button: |
       **Name of the agent whose Power of Attorney for Property you want to revoke:**
-      ${property_agent.name.full(middle='full')}
+      ${property_agent.name_full()}
     show if: poa_type["Property"]
   - Edit: property_agent.in_america
     button: |
-      **${property_agent.name.full(middle='full')}'s address:**
+      **${property_agent.name_full()}'s address:**
       % if property_agent.in_america == True:
       ${property_agent.address.on_one_line(bare="True")}
       % else:
@@ -1024,13 +1024,13 @@ review:
       **Successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
       % for person in property_successors:
       
-        * ${ person.name.full(middle="full") }
+        * ${ person.name_full() }
       % endfor    
     show if: any_property_successors == True and poa_type["Property"] == True
   - Edit: property_replace_agent
     button: |
       % if property_successors.number_gathered() == 1:
-      **Do you want ${property_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Property?**
+      **Do you want ${property_successors[0].name_full()} to take over as your new agent for Power of Attorney for Property?**
       % else:
       **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Property?**
       % endif
@@ -1048,17 +1048,17 @@ review:
     show if: poa_type["Property"]
   - Edit: same_agent
     button: |
-      **Is ${property_agent.name.full(middle='full')} your agent for your Power of Attorney for Health Care?**
+      **Is ${property_agent.name_full()} your agent for your Power of Attorney for Health Care?**
       ${word(yesno(same_agent))}
     show if: poa_type["Property"] == True and poa_type["Health"] == True
   - Edit: health_agent.name.first
     button: |
       **Name of the agent whose Power of Attorney for Health Care you want to revoke:**
-      ${health_agent.name.full(middle='full')}
+      ${health_agent.name_full()}
     show if: poa_type["Health"]
   - Edit: health_agent.in_america
     button: |
-      **${health_agent.name.full(middle='full')}'s address:**
+      **${health_agent.name_full()}'s address:**
       % if health_agent.in_america == True:
       ${health_agent.address.on_one_line(bare="True")}
       % else:
@@ -1089,13 +1089,13 @@ review:
       **Successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
       % for person in health_successors:
       
-        * ${ person.name.full(middle="full") }
+        * ${ person.name_full() }
       % endfor    
     show if: any_health_successors == True and poa_type["Health"] == True
   - Edit: health_replace_agent
     button: |
       % if health_successors.number_gathered() == 1:
-      **Do you want ${health_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Health Care?**
+      **Do you want ${health_successors[0].name_full()} to take over as your new agent for Power of Attorney for Health Care?**
       % else:
       **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Health Care?**
       % endif
@@ -1114,7 +1114,7 @@ review:
   - Edit: user.name.first
     button: |
       **Your name:**
-      ${user.name.full(middle='full')}
+      ${user.name_full()}
   - label: Edit
     fields:
       - user.address.address
@@ -1138,7 +1138,7 @@ table: property_successors.table
 rows: property_successors
 columns:
   - Name: |
-      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+      row_item.name_full() if defined("row_item.name.first") else ""
   - Address: |
       action_button_html(url_action(row_item.attr_name("property_review_successor")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -1148,15 +1148,15 @@ id: property successor review screen
 continue button field: x.property_review_successor
 generic object: ALIndividual
 question: |
-  Edit ${ x.name.full(middle="full") }'s information
+  Edit ${ x.name_full() }'s information
 review: 
   - Edit: x.name.first
     button: |
       **Successor name:**
-      ${ x.name.full(middle="full")  }
+      ${ x.name_full()  }
   - Edit: x.in_america
     button: |
-      **${ x.name.full(middle="full") }'s address:**
+      **${ x.name_full() }'s address:**
       % if x.in_america == True:
       ${ x.address.on_one_line(bare=True) }
       % else:
@@ -1164,7 +1164,7 @@ review:
       % endif
   - Edit: x.remain
     button: |
-      **Do you want ${x.name.full(middle="full")} to remain as a successor?**
+      **Do you want ${x.name_full()} to remain as a successor?**
       ${word(yesno(x.remain))}
     show if: property_replace_agent
 ---
@@ -1182,7 +1182,7 @@ table: health_successors.table
 rows: health_successors
 columns:
   - Name: |
-      row_item.name.full(middle="full") if defined("row_item.name.first") else ""
+      row_item.name_full() if defined("row_item.name.first") else ""
   - Address: |
       action_button_html(url_action(row_item.attr_name("health_review_successor")), label="Edit", icon="pencil-alt")
 delete buttons: True
@@ -1192,15 +1192,15 @@ id: health successor review screen
 continue button field: x.health_review_successor
 generic object: ALIndividual
 question: |
-  Edit ${ x.name.full(middle="full") }'s information
+  Edit ${ x.name_full() }'s information
 review: 
   - Edit: x.name.first
     button: |
       **Successor name:**
-      ${ x.name.full(middle="full")  }
+      ${ x.name_full()  }
   - Edit: x.in_america
     button: |
-      **${ x.name.full(middle="full") }'s address:**
+      **${ x.name_full() }'s address:**
       % if x.in_america == True:
       ${ x.address.on_one_line(bare=True) }
       % else:
@@ -1208,7 +1208,7 @@ review:
       % endif
   - Edit: x.remain
     button: |
-      **Do you want ${x.name.full(middle="full")} to remain as a successor?**
+      **Do you want ${x.name_full()} to remain as a successor?**
       ${word(yesno(x.remain))}
     show if: health_replace_agent
 ---
@@ -1227,11 +1227,11 @@ review:
   - Edit: property_agent.name.first
     button: |
       **Name of the agent whose Power of Attorney for Property you want to revoke:**
-      ${property_agent.name.full(middle='full')}
+      ${property_agent.name_full()}
     show if: poa_type["Property"]
   - Edit: property_agent.in_america
     button: |
-      **${property_agent.name.full(middle='full')}'s address:**
+      **${property_agent.name_full()}'s address:**
       % if property_agent.in_america == True:
       ${property_agent.address.on_one_line(bare="True")}
       % else:
@@ -1257,13 +1257,13 @@ review:
       **Successor agents for the Power of Attorney for Property: (Edit to change names and addresses)**
       % for person in property_successors:
       
-        * ${ person.name.full(middle="full") }
+        * ${ person.name_full() }
       % endfor    
     show if: any_property_successors == True and poa_type["Property"] == True
   - Edit: property_replace_agent
     button: |
       % if property_successors.number_gathered() == 1:
-      **Do you want ${property_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Property?**
+      **Do you want ${property_successors[0].name_full()} to take over as your new agent for Power of Attorney for Property?**
       % else:
       **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Property?**
       % endif
@@ -1294,17 +1294,17 @@ review:
       ${word(yesno(poa_type["Health"]))}
   - Edit: same_agent
     button: |
-      **Is ${property_agent.name.full(middle='full')} your agent for your Power of Attorney for Health Care?**
+      **Is ${property_agent.name_full()} your agent for your Power of Attorney for Health Care?**
       ${word(yesno(same_agent))}
     show if: poa_type["Property"] == True and poa_type["Health"] == True
   - Edit: health_agent.name.first
     button: |
       **Name of the agent whose Power of Attorney for Health Care you want to revoke:**
-      ${health_agent.name.full(middle='full')}
+      ${health_agent.name_full()}
     show if: poa_type["Health"]
   - Edit: health_agent.in_america
     button: |
-      **${health_agent.name.full(middle='full')}'s address:**
+      **${health_agent.name_full()}'s address:**
       % if health_agent.in_america == True:
       ${health_agent.address.on_one_line(bare="True")}
       % else:
@@ -1335,13 +1335,13 @@ review:
       **Successor agents for the Power of Attorney for Health Care: (Edit to change names and addresses)**
       % for person in health_successors:
       
-        * ${ person.name.full(middle="full") }
+        * ${ person.name_full() }
       % endfor    
     show if: any_health_successors == True and poa_type["Health"] == True
   - Edit: health_replace_agent
     button: |
       % if health_successors.number_gathered() == 1:
-      **Do you want ${health_successors[0].name.full(middle='full')} to take over as your new agent for Power of Attorney for Health Care?**
+      **Do you want ${health_successors[0].name_full()} to take over as your new agent for Power of Attorney for Health Care?**
       % else:
       **Do you want one of the successor agents to take over as your new agent for Power of Attorney for Health Care?**
       % endif
@@ -1369,7 +1369,7 @@ review:
   - Edit: user.name.first
     button: |
       **Your name:**
-      ${user.name.full(middle='full')}
+      ${user.name_full()}
   - label: Edit
     fields:
       - user.address.address
