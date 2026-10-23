@@ -998,7 +998,7 @@ review:
     button: |
       **${property_agent.name_full()}'s address:**
       % if property_agent.in_america == True:
-      ${property_agent.address.on_one_line(bare="True")}
+      ${property_agent.address.on_one_line(bare=True)}
       % else:
       ${property_agent.intl_address_1}, ${property_agent.intl_address_2}
       % endif
@@ -1058,7 +1058,7 @@ review:
     button: |
       **${health_agent.name_full()}'s address:**
       % if health_agent.in_america == True:
-      ${health_agent.address.on_one_line(bare="True")}
+      ${health_agent.address.on_one_line(bare=True)}
       % else:
       ${health_agent.intl_address_1}, ${health_agent.intl_address_2}
       % endif
@@ -1116,7 +1116,7 @@ review:
   - Edit: user.address.address
     button: |
       **Your address:**
-      ${user.address.on_one_line(bare="True")}, ${end_in_county(user.address.county)}
+      ${user.address.on_one_line(bare=True)}, ${end_in_county(user.address.county)}
 ---
 id: property successors review screen
 continue button field: property_successors.revisit
@@ -1227,7 +1227,7 @@ review:
     button: |
       **${property_agent.name_full()}'s address:**
       % if property_agent.in_america == True:
-      ${property_agent.address.on_one_line(bare="True")}
+      ${property_agent.address.on_one_line(bare=True)}
       % else:
       ${property_agent.intl_address_1}, ${property_agent.intl_address_2}
       % endif
@@ -1300,7 +1300,7 @@ review:
     button: |
       **${health_agent.name_full()}'s address:**
       % if health_agent.in_america == True:
-      ${health_agent.address.on_one_line(bare="True")}
+      ${health_agent.address.on_one_line(bare=True)}
       % else:
       ${health_agent.intl_address_1}, ${health_agent.intl_address_2}
       % endif
