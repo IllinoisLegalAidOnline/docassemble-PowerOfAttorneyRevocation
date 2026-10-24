@@ -1,7 +1,7 @@
 metadata:
   title: Power of attorney revocation
   short title: POA revocation
-  comment: This program helps you create documents to cancel the power that you previously gave an agent under a Power of Attorney for Health Care or Power of Attorney for Property.
+  comment: This Easy Form helps you create documents to cancel the power that you previously gave an agent under a Power of Attorney for Health Care or Power of Attorney for Property.
   authors:
     - Vivian McNaughton
     - Matt Newsted
@@ -29,7 +29,6 @@ objects:
         object_type=ALIndividual,
         complete_attribute='complete',
         there_are_any=True)
-  - court_list: ALCourtLoader.using(file_name='docassemble.ILAO:data/sources/il_courts.xlsx')
 ---
 # Road map
 sections:
@@ -103,7 +102,6 @@ code: |
   set_progress(90)
   user.name.first
   user.address.address
-  user.address.county_correct
   nav.set_section('section_download')
   forms_assembling
   snapshot_forms
@@ -149,7 +147,7 @@ subquestion: |
 
   This program helps you create documents to cancel the power that you previously gave an agent under a Power of Attorney for Health Care or a Power of Attorney for Property.
   
-  To learn more, read ILAO's article about [**ending a power of attorney**](https://www.illinoislegalaid.org/legal-information/ending-power-attorney-0).
+  To learn more, see ILAO's article on [**revoking or ending a power of attorney**](https://www.illinoislegalaid.org/node/31866).
 field: sees_nav_bar
 ---
 id: instructions
@@ -1000,7 +998,7 @@ review:
     button: |
       **${property_agent.name_full()}'s address:**
       % if property_agent.in_america == True:
-      ${property_agent.address.on_one_line(bare="True")}
+      ${property_agent.address.on_one_line(bare=True)}
       % else:
       ${property_agent.intl_address_1}, ${property_agent.intl_address_2}
       % endif
@@ -1060,7 +1058,7 @@ review:
     button: |
       **${health_agent.name_full()}'s address:**
       % if health_agent.in_america == True:
-      ${health_agent.address.on_one_line(bare="True")}
+      ${health_agent.address.on_one_line(bare=True)}
       % else:
       ${health_agent.intl_address_1}, ${health_agent.intl_address_2}
       % endif
@@ -1115,14 +1113,10 @@ review:
     button: |
       **Your name:**
       ${user.name_full()}
-  - label: Edit
-    fields:
-      - user.address.address
-      - recompute:
-        - user.address.county_correct
+  - Edit: user.address.address
     button: |
       **Your address:**
-      ${user.address.on_one_line(bare="True")}, ${end_in_county(user.address.county)}
+      ${user.address.on_one_line(bare=True)}, ${end_in_county(user.address.county)}
 ---
 id: property successors review screen
 continue button field: property_successors.revisit
@@ -1233,7 +1227,7 @@ review:
     button: |
       **${property_agent.name_full()}'s address:**
       % if property_agent.in_america == True:
-      ${property_agent.address.on_one_line(bare="True")}
+      ${property_agent.address.on_one_line(bare=True)}
       % else:
       ${property_agent.intl_address_1}, ${property_agent.intl_address_2}
       % endif
@@ -1306,7 +1300,7 @@ review:
     button: |
       **${health_agent.name_full()}'s address:**
       % if health_agent.in_america == True:
-      ${health_agent.address.on_one_line(bare="True")}
+      ${health_agent.address.on_one_line(bare=True)}
       % else:
       ${health_agent.intl_address_1}, ${health_agent.intl_address_2}
       % endif
@@ -1370,11 +1364,7 @@ review:
     button: |
       **Your name:**
       ${user.name_full()}
-  - label: Edit
-    fields:
-      - user.address.address
-      - recompute:
-        - user.address.county_correct
+  - Edit: user.address.address
     button: |
       **Your address:**
-      ${user.address.on_one_line(bare="True")}, ${end_in_county(user.address.county)}
+      ${user.address.on_one_line(bare=True)}, ${end_in_county(user.address.county)}
